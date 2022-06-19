@@ -176,7 +176,7 @@ tm.define("TitleScene", {
                     fillStyle: "#fff",
                     fontSize: 160,
                     fontFamily: FONT_FAMILY,
-                    text: "TPTM\n6",
+                    text: "TPTM\n7",
                     align: "center",
                 },
                 {
@@ -449,15 +449,16 @@ function postFunction(resultString) {
 }
 function permissionRequest() {
     dbgMsg += "permissionRequest\n";
-    if (DeviceOrientationEvent
-        && DeviceOrientationEvent.requestPermission
-        && typeof DeviceOrientationEvent.requestPermission === 'function'
-    ) {
-        dbgMsg += "then\n";
-        DeviceOrientationEvent.requestPermission().then(postFnction);
-    } else {
-        dbgMsg += "else\n";
-    }
+    //    if (DeviceOrientationEvent
+    //        && DeviceOrientationEvent.requestPermission
+    //        && typeof DeviceOrientationEvent.requestPermission === 'function'
+    //    ) {
+    //        dbgMsg += "then\n";
+    //        DeviceOrientationEvent.requestPermission().then(postFnction);
+    //    } else {
+    //        dbgMsg += "else\n";
+    //    }
+    DeviceOrientationEvent.requestPermission().then(postFnction);
 }
 // 指定の範囲で乱数を求める
 // ※start < end
