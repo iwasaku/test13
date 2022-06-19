@@ -11,22 +11,24 @@
             }
         }
         function permission_request() {
-            if (DeviceOrientationEvent
-                && DeviceOrientationEvent.requestPermission
-                && typeof DeviceOrientationEvent.requestPermission === 'function'
-            ) {
-                DeviceMotionEvent.requestPermission().then(post_function);
-                window.addEventListener("devicemotion", function (e) {
-                    // 何らかの処理
-                }, false);
-            }
+            let text = document.getElementById('result_text').textContent; //宣言
+            document.getElementById('result_text').textContent = 'textContentでHTMLを書き換えています';
             if (DeviceOrientationEvent
                 && DeviceOrientationEvent.requestPermission
                 && typeof DeviceOrientationEvent.requestPermission === 'function'
             ) {
                 DeviceOrientationEvent.requestPermission().then(postf_unction);
                 window.addEventListener("deviceorientation", function (e) {
-                    // 何らかの処理
+                    var str = '',
+                        alpha = e.alpha,
+                        beta = e.beta,
+                        gamma = e.gamma;
+
+                    str = 'alpha = ' + alpha + '\n';
+                    str += 'beta = ' + beta + '\n';
+                    str += 'gamma = ' + gamma + '\n';
+                    text = document.getElementById('result_text').textContent; //宣言
+                    document.getElementById('result_text').textContent = str;
                 }, false);
             }
         }
@@ -35,6 +37,9 @@
 
 <body>
     <button onclick="permission_request();">動作と方向へのアクセス許可</button>
+    <p id="result_text">
+        result
+    </p>
 </body>
 
 </html>
