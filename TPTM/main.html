@@ -25,32 +25,30 @@
     <meta property="og:image" content="https://iwasaku.github.io/test13/TPTM/favicon/favicon-192.png">
 
     <meta charset="UTF-8" />
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="viewport" content="width=device-width, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
 
     <title>TPTM</title>
-    <script>
-        function post_function(result_string) {
-            if (result_string === "granted") {
-                // ユーザが許可した場合、文字列"granted"が返る
-            }
-            else if (result_string === "denied") {
-                // ユーザが拒否した場合、文字列"denied"が返る
-            }
+    <style>
+        @font-face {
+            font-family: 'misaki_gothic';
+            src: url('https://cdn.leafscape.be/misaki/misaki_gothic_web.woff2') format("woff2");
         }
-        function permission_request() {
-            if (DeviceOrientationEvent
-                && DeviceOrientationEvent.requestPermission
-                && typeof DeviceOrientationEvent.requestPermission === 'function'
-            ) {
-                DeviceOrientationEvent.requestPermission().then(postf_unction);
-            }
-            window.location.href = './main.html'; // 通常の遷移
+
+        body {
+            background-color: #1f1f1f;
         }
-    </script>
+    </style>
+    <script src="https://cdn.jsdelivr.net/gh/phi-jp/tmlib.js@0.3.0/build/tmlib.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.1.2/howler.min.js"></script>
+    <script src='enum.js'></script>
+    <script src='main.js?202206192352'></script>
 </head>
 
 <body>
-    <h1>実験8</h1>
-    <button onclick="permission_request()">ボタン１</button><br>
+    <canvas id="world"></canvas>
 </body>
 
 </html>
