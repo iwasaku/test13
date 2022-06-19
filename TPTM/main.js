@@ -95,6 +95,12 @@ var randomSeed = 3557;
 var randomMode = Boolean(0);
 let dbgMsg = "";
 
+window.addEventListener('deviceorientation', function (e) {
+    eAlpha = e.alpha;   // 未使用
+    eBeta = e.beta; // 縦加速（-180～180°）
+    eGamma = e.gamma;   // 横加速（-90～90°）
+}, false);
+
 tm.main(function () {
     // アプリケーションクラスを生成
     var app = tm.display.CanvasApp("#world");
@@ -170,7 +176,7 @@ tm.define("TitleScene", {
                     fillStyle: "#fff",
                     fontSize: 160,
                     fontFamily: FONT_FAMILY,
-                    text: "TPTM",
+                    text: "TPTM\n6",
                     align: "center",
                 },
                 {
@@ -422,11 +428,6 @@ const requestDeviceOrientationPermission = () => {
             .then(permissionState => {
                 if (permissionState === 'granted') {
                     // 許可を得られた場合、deviceorientationをイベントリスナーに追加
-                    window.addEventListener('deviceorientation', function (e) {
-                        eAlpha = e.alpha;   // 未使用
-                        eBeta = e.beta; // 縦加速（-180～180°）
-                        eGamma = e.gamma;   // 横加速（-90～90°）
-                    }, true);
                 } else {
                     // 許可を得られなかった場合の処理
                 }
@@ -454,11 +455,6 @@ function permissionRequest() {
     ) {
         dbgMsg += "then\n";
         DeviceOrientationEvent.requestPermission().then(postFnction);
-        window.addEventListener("deviceorientation", function (e) {
-            eAlpha = e.alpha;   // 未使用
-            eBeta = e.beta; // 縦加速（-180～180°）
-            eGamma = e.gamma;   // 横加速（-90～90°）
-        }, false);
     } else {
         dbgMsg += "else\n";
     }
