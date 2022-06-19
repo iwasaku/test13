@@ -93,6 +93,7 @@ let eBeta = 0;
 let eGamma = 0;
 var randomSeed = 3557;
 var randomMode = Boolean(0);
+let dbgMsg = "";
 
 tm.main(function () {
     // アプリケーションクラスを生成
@@ -193,7 +194,7 @@ tm.define("TitleScene", {
 
         var self = this;
         this.startButton.onpointingstart = function () {
-            requestDeviceOrientationPermission;
+            permissionRequest();
             self.app.replaceScene(GameScene());
         };
     },
@@ -351,6 +352,7 @@ tm.define("GameScene", {
             }
         }
         this.nowDepthLabel.text = player.depth + "m";
+        this.nowDepthLabel.text = dbgMsg;
         this.nowScoreLabel.text = player.score;
         this.nowScoreLabel.text = "[" + eAlpha + "," + eBeta + "," + eGamma + "]";
 
@@ -435,6 +437,32 @@ const requestDeviceOrientationPermission = () => {
     }
 }
 
+function postFunction(resultString) {
+    if (resultString === "granted") {
+        // ユーザが許可した場合、文字列"granted"が返る
+    }
+    else if (resultString === "denied") {
+        // ユーザが拒否した場合、文字列"denied"が返る
+    }
+    dbgMsg += resultString + "\n";
+}
+function permissionRequest() {
+    dbgMsg += "permissionRequest\n";
+    if (DeviceOrientationEvent
+        && DeviceOrientationEvent.requestPermission
+        && typeof DeviceOrientationEvent.requestPermission === 'function'
+    ) {
+        dbgMsg += "then\n";
+        DeviceOrientationEvent.requestPermission().then(postFnction);
+        window.addEventListener("deviceorientation", function (e) {
+            eAlpha = e.alpha;   // 未使用
+            eBeta = e.beta; // 縦加速（-180～180°）
+            eGamma = e.gamma;   // 横加速（-90～90°）
+        }, false);
+    } else {
+        dbgMsg += "else\n";
+    }
+}
 // 指定の範囲で乱数を求める
 // ※start < end
 // ※startとendを含む
