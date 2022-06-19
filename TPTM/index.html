@@ -43,14 +43,64 @@
             ) {
                 DeviceOrientationEvent.requestPermission().then(postf_unction);
             }
-            window.location = './main.html'; // 通常の遷移
+            window.location.href = 'https://iwasaku.github.io/test13/TPTM/main.html'; // 通常の遷移
+        }
+        function permission_request_1() {
+            if (DeviceOrientationEvent
+                && DeviceOrientationEvent.requestPermission
+                && typeof DeviceOrientationEvent.requestPermission === 'function'
+            ) {
+                DeviceOrientationEvent.requestPermission().then(postf_unction);
+            }
+            window.location = 'https://iwasaku.github.io/test13/TPTM/main.html'; // 通常の遷移
+        }
+        function permission_request_2() {
+            if (DeviceOrientationEvent
+                && DeviceOrientationEvent.requestPermission
+                && typeof DeviceOrientationEvent.requestPermission === 'function'
+            ) {
+                DeviceOrientationEvent.requestPermission().then(postf_unction);
+            }
+            window.location.replace('https://iwasaku.github.io/test13/TPTM/main.html');
+        }
+        function permission_request_3() {
+            if (DeviceOrientationEvent
+                && DeviceOrientationEvent.requestPermission
+                && typeof DeviceOrientationEvent.requestPermission === 'function'
+            ) {
+                DeviceOrientationEvent.requestPermission().then(postf_unction);
+            }
+            setTimeout(function () { document.location.href = "https://iwasaku.github.io/test13/TPTM/main.html"; }, 250);
+        }
+        function permission_request_4() {
+            if (DeviceOrientationEvent
+                && DeviceOrientationEvent.requestPermission
+                && typeof DeviceOrientationEvent.requestPermission === 'function'
+            ) {
+                DeviceOrientationEvent.requestPermission().then(postf_unction);
+            }
+            document.location.assign(document.location.origin + "/test13/TPTM/main.html");
+        }
+        function permission_request_5() {
+            if (DeviceOrientationEvent
+                && DeviceOrientationEvent.requestPermission
+                && typeof DeviceOrientationEvent.requestPermission === 'function'
+            ) {
+                DeviceOrientationEvent.requestPermission().then(postf_unction);
+            }
+            location.assign(location.origin + "/test13/TPTM/main.html");
         }
     </script>
 </head>
 
 <body>
-    <h1>実験10</h1>
-    <button onclick="permission_request()">ボタン１</button>
+    <h1>実験11</h1>
+    <button onclick="permission_request()">ボタン１</button><br><br>
+    <button onclick="permission_request_1()">ボタン２</button><br><br>
+    <button onclick="permission_request_2()">ボタン３</button><br><br>
+    <button onclick="permission_request_3()">ボタン４</button><br><br>
+    <button onclick="permission_request_4()">ボタン５</button><br><br>
+    <button onclick="permission_request_5()">ボタン６</button><br><br>
 </body>
 
 </html>
