@@ -2,6 +2,19 @@
 
 <head>
     <script>
+        window.addEventListener("deviceorientation", function (e) {
+            var str = '',
+                alpha = e.alpha,
+                beta = e.beta,
+                gamma = e.gamma;
+
+            str = 'alpha = ' + alpha + '\n';
+            str += 'beta = ' + beta + '\n';
+            str += 'gamma = ' + gamma + '\n';
+            text = document.getElementById('result_text').textContent; //宣言
+            document.getElementById('result_text').textContent = str;
+        }, false);
+
         function post_function(result_string) {
             if (result_string === "granted") {
                 // ユーザが許可した場合、文字列"granted"が返る
@@ -36,6 +49,7 @@
 </head>
 
 <body>
+    <h1>実験3</h1>
     <button onclick="permission_request();">動作と方向へのアクセス許可</button>
     <p id="result_text">
         result
