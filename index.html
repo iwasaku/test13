@@ -26,18 +26,19 @@
         function permission_request() {
             let text = document.getElementById('result_text').textContent; //宣言
             document.getElementById('result_text').textContent = 'textContentでHTMLを書き換えています';
-            if (DeviceOrientationEvent
-                && DeviceOrientationEvent.requestPermission
-                && typeof DeviceOrientationEvent.requestPermission === 'function'
-            ) {
-                DeviceOrientationEvent.requestPermission().then(postf_unction);
-            }
+            //            if (DeviceOrientationEvent
+            //                && DeviceOrientationEvent.requestPermission
+            //                && typeof DeviceOrientationEvent.requestPermission === 'function'
+            //            ) {
+            //                DeviceOrientationEvent.requestPermission().then(postf_unction);
+            //            }
+            DeviceOrientationEvent.requestPermission().then(postf_unction);
         }
     </script>
 </head>
 
 <body>
-    <h1>実験4</h1>
+    <h1>実験5</h1>
     <button onclick="permission_request();">動作と方向へのアクセス許可</button>
     <p id="result_text">
         result
