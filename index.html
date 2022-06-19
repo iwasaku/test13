@@ -31,25 +31,13 @@
                 && typeof DeviceOrientationEvent.requestPermission === 'function'
             ) {
                 DeviceOrientationEvent.requestPermission().then(postf_unction);
-                window.addEventListener("deviceorientation", function (e) {
-                    var str = '',
-                        alpha = e.alpha,
-                        beta = e.beta,
-                        gamma = e.gamma;
-
-                    str = 'alpha = ' + alpha + '\n';
-                    str += 'beta = ' + beta + '\n';
-                    str += 'gamma = ' + gamma + '\n';
-                    text = document.getElementById('result_text').textContent; //宣言
-                    document.getElementById('result_text').textContent = str;
-                }, false);
             }
         }
     </script>
 </head>
 
 <body>
-    <h1>実験3</h1>
+    <h1>実験4</h1>
     <button onclick="permission_request();">動作と方向へのアクセス許可</button>
     <p id="result_text">
         result
