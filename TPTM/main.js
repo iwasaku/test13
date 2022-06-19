@@ -95,12 +95,6 @@ var randomSeed = 3557;
 var randomMode = Boolean(0);
 let dbgMsg = "";
 
-window.addEventListener('deviceorientation', function (e) {
-    eAlpha = e.alpha;   // 未使用
-    eBeta = e.beta; // 縦加速（-180～180°）
-    eGamma = e.gamma;   // 横加速（-90～90°）
-}, false);
-
 tm.main(function () {
     // アプリケーションクラスを生成
     var app = tm.display.CanvasApp("#world");
@@ -176,7 +170,7 @@ tm.define("TitleScene", {
                     fillStyle: "#fff",
                     fontSize: 160,
                     fontFamily: FONT_FAMILY,
-                    text: "TPTM\n10",
+                    text: "TPTM\n13",
                     align: "center",
                 },
                 {
@@ -200,6 +194,11 @@ tm.define("TitleScene", {
 
         var self = this;
         this.startButton.onpointingstart = function () {
+            window.addEventListener('deviceorientation', function (e) {
+                eAlpha = e.alpha;   // 未使用
+                eBeta = e.beta; // 縦加速（-180～180°）
+                eGamma = e.gamma;   // 横加速（-90～90°）
+            }, false);
             self.app.replaceScene(GameScene());
         };
     },
