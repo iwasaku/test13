@@ -176,7 +176,7 @@ tm.define("TitleScene", {
                     fillStyle: "#fff",
                     fontSize: 160,
                     fontFamily: FONT_FAMILY,
-                    text: "TPTM\n8",
+                    text: "TPTM\n9",
                     align: "center",
                 },
                 {
@@ -200,7 +200,6 @@ tm.define("TitleScene", {
 
         var self = this;
         this.startButton.onpointingstart = function () {
-            permissionRequest();
             self.app.replaceScene(GameScene());
         };
     },
@@ -438,28 +437,6 @@ const requestDeviceOrientationPermission = () => {
     }
 }
 
-function postFunction(resultString) {
-    if (resultString === "granted") {
-        // ユーザが許可した場合、文字列"granted"が返る
-    }
-    else if (resultString === "denied") {
-        // ユーザが拒否した場合、文字列"denied"が返る
-    }
-    dbgMsg += resultString + "\n";
-}
-function permissionRequest() {
-    dbgMsg += "permissionRequest\n";
-    //    if (DeviceOrientationEvent
-    //        && DeviceOrientationEvent.requestPermission
-    //        && typeof DeviceOrientationEvent.requestPermission === 'function'
-    //    ) {
-    //        dbgMsg += "then\n";
-    //        DeviceOrientationEvent.requestPermission().then(postFnction);
-    //    } else {
-    //        dbgMsg += "else\n";
-    //    }
-    DeviceOrientationEvent.requestPermission().then(postFnction);
-}
 // 指定の範囲で乱数を求める
 // ※start < end
 // ※startとendを含む
