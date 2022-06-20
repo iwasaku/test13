@@ -170,7 +170,7 @@ tm.define("TitleScene", {
                     fillStyle: "#fff",
                     fontSize: 160,
                     fontFamily: FONT_FAMILY,
-                    text: "TPTM\n19",
+                    text: "TPTM\n20",
                     align: "center",
                 },
                 {
