@@ -48,8 +48,7 @@
                 DeviceOrientationEvent.requestPermission().then(postf_unction);
             }
             document.getElementById('test').innerText = 'permission_request_0';
-            document.location.href = './main.html'; // 通常の遷移
-            return false;
+            window.location.href = './main.html'; // 通常の遷移
         }
         function permission_request_1() {
             if (DeviceOrientationEvent
@@ -59,7 +58,7 @@
                 DeviceOrientationEvent.requestPermission().then(postf_unction);
             }
             document.getElementById('test').innerText = 'permission_request_1';
-            document.location = './main.html'; // 通常の遷移
+            window.location = './main.html'; // 通常の遷移
             return false;
         }
         function permission_request_2() {
@@ -70,7 +69,7 @@
                 DeviceOrientationEvent.requestPermission().then(postf_unction);
             }
             document.getElementById('test').innerText = 'permission_request_2';
-            document.location.replace('./main.html');
+            window.location.replace('./main.html');
             return false;
         }
         function permission_request_3() {
@@ -82,7 +81,7 @@
             }
             document.getElementById('test').innerText = 'permission_request_3';
             setTimeout(function () {
-                document.location.href = "./main.html"; return false;
+                window.location.href = "./main.html"; return false;
             }, 250);
         }
         function permission_request_4() {
@@ -93,7 +92,7 @@
                 DeviceOrientationEvent.requestPermission().then(postf_unction);
             }
             document.getElementById('test').innerText = 'permission_request_4';
-            document.location.href('./main.html');
+            window.location.href('./main.html');
             return false;
         }
         function permission_request_5() {
@@ -137,7 +136,7 @@
 </head>
 
 <body>
-    <h1>実験20</h1>
+    <h1>実験21</h1>
     <button onclick="permission_request_0()">ボタン０</button><br><br>
     <button onclick="permission_request_1()">ボタン１</button><br><br>
     <button onclick="permission_request_2()">ボタン２</button><br><br>
