@@ -40,14 +40,16 @@
                 // ユーザが拒否した場合、文字列"denied"が返る
             }
         }
-        function permission_request() {
+        function permission_request_0() {
             if (DeviceOrientationEvent
                 && DeviceOrientationEvent.requestPermission
                 && typeof DeviceOrientationEvent.requestPermission === 'function'
             ) {
                 DeviceOrientationEvent.requestPermission().then(postf_unction);
             }
-            window.location.href = 'https://iwasaku.github.io/test13/TPTM/main.html'; // 通常の遷移
+            let text = document.getElementById('test').innerText;
+            document.getElementById('test').innerText = 'permission_request_0';
+            document.location.href = './main.html'; // 通常の遷移
         }
         function permission_request_1() {
             if (DeviceOrientationEvent
@@ -56,7 +58,9 @@
             ) {
                 DeviceOrientationEvent.requestPermission().then(postf_unction);
             }
-            window.location = 'https://iwasaku.github.io/test13/TPTM/main.html'; // 通常の遷移
+            let text = document.getElementById('test').innerText;
+            document.getElementById('test').innerText = 'permission_request_1';
+            document.location = './main.html'; // 通常の遷移
         }
         function permission_request_2() {
             if (DeviceOrientationEvent
@@ -65,7 +69,9 @@
             ) {
                 DeviceOrientationEvent.requestPermission().then(postf_unction);
             }
-            window.location.replace('https://iwasaku.github.io/test13/TPTM/main.html');
+            let text = document.getElementById('test').innerText;
+            document.getElementById('test').innerText = 'permission_request_2';
+            document.location.replace('./main.html');
         }
         function permission_request_3() {
             if (DeviceOrientationEvent
@@ -74,7 +80,9 @@
             ) {
                 DeviceOrientationEvent.requestPermission().then(postf_unction);
             }
-            setTimeout(function () { document.location.href = "https://iwasaku.github.io/test13/TPTM/main.html"; }, 250);
+            let text = document.getElementById('test').innerText;
+            document.getElementById('test').innerText = 'permission_request_3';
+            setTimeout(function () { document.location.href = "./main.html"; }, 250);
         }
         function permission_request_4() {
             if (DeviceOrientationEvent
@@ -83,7 +91,9 @@
             ) {
                 DeviceOrientationEvent.requestPermission().then(postf_unction);
             }
-            document.location.assign(document.location.origin + "/test13/TPTM/main.html");
+            let text = document.getElementById('test').innerText;
+            document.getElementById('test').innerText = 'permission_request_4';
+            document.location.href('./main.html');
         }
         function permission_request_5() {
             if (DeviceOrientationEvent
@@ -92,7 +102,8 @@
             ) {
                 DeviceOrientationEvent.requestPermission().then(postf_unction);
             }
-            location.assign(location.origin + "/test13/TPTM/main.html");
+            let text = document.getElementById('test').innerText;
+            document.getElementById('test').innerText = 'permission_request_5';
         }
         function permission_request_6() {
             if (DeviceOrientationEvent
@@ -101,7 +112,8 @@
             ) {
                 DeviceOrientationEvent.requestPermission().then(postf_unction);
             }
-            window.location.href('https://iwasaku.github.io/test13/TPTM/main.html');
+            let text = document.getElementById('test').innerText;
+            document.getElementById('test').innerText = 'permission_request_6';
         }
         function permission_request_7() {
             if (DeviceOrientationEvent
@@ -110,7 +122,8 @@
             ) {
                 DeviceOrientationEvent.requestPermission().then(postf_unction);
             }
-            document.location = "https://iwasaku.github.io/test13/TPTM/main.html";
+            let text = document.getElementById('test').innerText;
+            document.getElementById('test').innerText = 'permission_request_7';
         }
         function permission_request_8() {
             if (DeviceOrientationEvent
@@ -119,21 +132,26 @@
             ) {
                 DeviceOrientationEvent.requestPermission().then(postf_unction);
             }
+            let text = document.getElementById('test').innerText;
+            document.getElementById('test').innerText = 'permission_request_8';
         }
     </script>
+    <script src="https://cdn.jsdelivr.net/gh/phi-jp/tmlib.js@0.3.0/build/tmlib.js"></script>
 </head>
 
 <body>
-    <h1>実験14</h1>
-    <button onclick="permission_request()">ボタン</button><br><br>
+    <h1>実験15</h1>
+    <button onclick="permission_request_0()">ボタン０</button><br><br>
     <button onclick="permission_request_1()">ボタン１</button><br><br>
     <button onclick="permission_request_2()">ボタン２</button><br><br>
     <button onclick="permission_request_3()">ボタン３</button><br><br>
     <button onclick="permission_request_4()">ボタン４</button><br><br>
+
     <button onclick="permission_request_5()">ボタン５</button><br><br>
-    <button onclick="permission_request_6()">ボタン５</button><br><br>
-    <button onclick="permission_request_7()">ボタン５</button><br><br>
-    <a href="https://iwasaku.github.io/test13/TPTM/main.html" onclick="permission_request_8()">リンク</a>
+    <button onclick="permission_request_6()">ボタン６</button><br><br>
+    <button onclick="permission_request_7()">ボタン７</button><br><br>
+    <a href="./main.html" onclick="permission_request_8()">リンク</a><br>
+    <p id="test">Javascriptを使ってHTMLを書き換えましょう！</p>
 </body>
 
 </html>
