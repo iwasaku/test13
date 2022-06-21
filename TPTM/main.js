@@ -170,7 +170,7 @@ tm.define("TitleScene", {
                     fillStyle: "#fff",
                     fontSize: 160,
                     fontFamily: FONT_FAMILY,
-                    text: "TPTM\n25",
+                    text: "TPTM\n26",
                     align: "center",
                 },
                 {
@@ -199,7 +199,7 @@ tm.define("TitleScene", {
                 eBeta = e.beta; // 縦加速（-180～180°）
                 eGamma = e.gamma;   // 横加速（-90～90°）
             }, false);
-            requestDeviceOrientationPermission();
+            //            requestDeviceOrientationPermission();
             self.app.replaceScene(GameScene());
         };
     },
