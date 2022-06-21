@@ -66,21 +66,24 @@
             }
         }
 
-        if (DeviceOrientationEvent
-            && DeviceOrientationEvent.requestPermission
-            && typeof DeviceOrientationEvent.requestPermission === 'function'
-        ) {
-            // ボタンを表示とか？
-        } else {
-            // DeviceOrientationEventが存在しない場合の処理
-            var el = document.createElement("script");
-            el.src = "main.js?202206200033";
-            document.getElementsByTagName('head')[0].appendChild(el);
-            document.getElementById('test').innerText = 'reload';
-        }
+        //        if (DeviceOrientationEvent
+        //            && DeviceOrientationEvent.requestPermission
+        //            && typeof DeviceOrientationEvent.requestPermission === 'function'
+        //        ) {
+        //            // 確認ボタンを表示とか？
+        //        } else {
+        //            // DeviceOrientationEventが存在しない場合の処理
+        //            var el = document.createElement("script");
+        //            el.src = "main.js?202206200033";
+        //            document.getElementsByTagName('head')[0].appendChild(el);
+        //            document.getElementById('test').innerText = 'reload';
+        //        }
+        var el = document.createElement("script");
+        el.src = "main.js?202206200033";
+        document.getElementsByTagName('head')[0].appendChild(el);
     </script>
     <canvas id="world"></canvas>
-    <button onclick="permission_request()">ボタン</button><br><br>
+    <button onclick="permission_request()">確認ボタン</button><br><br>
 </body>
 
 </html>
