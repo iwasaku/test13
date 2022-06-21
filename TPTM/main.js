@@ -170,7 +170,7 @@ tm.define("TitleScene", {
                     fillStyle: "#fff",
                     fontSize: 160,
                     fontFamily: FONT_FAMILY,
-                    text: "TPTM\n22",
+                    text: "TPTM\n23",
                     align: "center",
                 },
                 {
@@ -199,6 +199,7 @@ tm.define("TitleScene", {
                 eBeta = e.beta; // 縦加速（-180～180°）
                 eGamma = e.gamma;   // 横加速（-90～90°）
             }, false);
+            requestDeviceOrientationPermission();
             self.app.replaceScene(GameScene());
         };
     },
@@ -416,12 +417,10 @@ tm.define("PlayerSprite", {
 });
 
 const requestDeviceOrientationPermission = () => {
-    if (
-        DeviceOrientationEvent &&
-        typeof DeviceOrientationEvent.requestPermission === 'function'
+    if (DeviceOrientationEvent
+        && DeviceOrientationEvent.requestPermission
+        && typeof DeviceOrientationEvent.requestPermission === 'function'
     ) {
-        // iOS 13+ の Safari
-        // 許可を取得
         DeviceOrientationEvent.requestPermission()
             .then(permissionState => {
                 if (permissionState === 'granted') {
@@ -431,8 +430,6 @@ const requestDeviceOrientationPermission = () => {
                 }
             })
             .catch(console.error) // https通信でない場合などで許可を取得できなかった場合
-    } else {
-        // 上記以外のブラウザ
     }
 }
 
