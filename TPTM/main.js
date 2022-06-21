@@ -170,7 +170,7 @@ tm.define("TitleScene", {
                     fillStyle: "#fff",
                     fontSize: 160,
                     fontFamily: FONT_FAMILY,
-                    text: "TPTM\n23",
+                    text: "TPTM\n25",
                     align: "center",
                 },
                 {
@@ -417,19 +417,25 @@ tm.define("PlayerSprite", {
 });
 
 const requestDeviceOrientationPermission = () => {
+    //    if (DeviceOrientationEvent
+    //        && DeviceOrientationEvent.requestPermission
+    //        && typeof DeviceOrientationEvent.requestPermission === 'function'
+    //    ) {
+    //        DeviceOrientationEvent.requestPermission()
+    //            .then(permissionState => {
+    //                if (permissionState === 'granted') {
+    //                    // 許可を得られた場合、deviceorientationをイベントリスナーに追加
+    //                } else {
+    //                    // 許可を得られなかった場合の処理
+    //                }
+    //            })
+    //            .catch(console.error) // https通信でない場合などで許可を取得できなかった場合
+    //    }
     if (DeviceOrientationEvent
         && DeviceOrientationEvent.requestPermission
         && typeof DeviceOrientationEvent.requestPermission === 'function'
     ) {
-        DeviceOrientationEvent.requestPermission()
-            .then(permissionState => {
-                if (permissionState === 'granted') {
-                    // 許可を得られた場合、deviceorientationをイベントリスナーに追加
-                } else {
-                    // 許可を得られなかった場合の処理
-                }
-            })
-            .catch(console.error) // https通信でない場合などで許可を取得できなかった場合
+        DeviceOrientationEvent.requestPermission();
     }
 }
 
