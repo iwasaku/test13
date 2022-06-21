@@ -46,6 +46,7 @@
 </head>
 
 <body>
+    <p id="test">Javascriptを使ってHTMLを書き換えましょう！</p>
     <script>
         function permission_request() {
             if (DeviceOrientationEvent
@@ -74,12 +75,12 @@
             // DeviceOrientationEventが存在しない場合の処理
             var el = document.createElement("script");
             el.src = "main.js?202206200033";
-            document.body.appendChild(el);
+            document.getElementsByTagName('head')[0].appendChild(el);
+            document.getElementById('test').innerText = 'reload';
         }
     </script>
     <canvas id="world"></canvas>
     <button onclick="permission_request()">ボタン</button><br><br>
-    <p id="test">Javascriptを使ってHTMLを書き換えましょう！</p>
 </body>
 
 </html>
