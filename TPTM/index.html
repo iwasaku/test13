@@ -39,6 +39,23 @@
         body {
             background-color: #ffffff;
         }
+
+        .position-absolute {
+            background: yellow;
+            position: absolute;
+            /*要素を浮かす*/
+            /*relativeを指定した親要素を支点とした位置をすべて0に指定↓*/
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            margin: auto;
+            /*上下左右中央に*/
+            width: 100px;
+            /*widthの指定は必須*/
+            height: 100px;
+            /*heightの指定は必須*/
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/gh/phi-jp/tmlib.js@0.3.0/build/tmlib.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.1.2/howler.min.js"></script>
@@ -46,8 +63,10 @@
 </head>
 
 <body>
-    <p id="test">実験34</p>
-    <button id="confirm_btn" onclick="permission_request()" hidden>確認</button><br><br>
+    <p id="test">実験35</p>
+    <div class="position-absolute">
+        <button id="confirm_btn" onclick="permission_request()" hidden>動作と方向へのアクセス許可</button><br><br>
+    </div>
 
     <script>
         var doeConfirmFlag = localStorage.getItem("tptm.doeConfirmFlag");
@@ -61,13 +80,15 @@
                 DeviceOrientationEvent.requestPermission().then(permissionState => {
                     if (permissionState === 'granted') {
                         // 許可を得られた場合
+                        // フラグを立てる
                         localStorage.setItem("tptm.doeConfirmFlag", "1");
+                        // 確認ボタン表示
                         document.getElementById('confirm_btn').hidden = true;
-                        document.getElementById('test').innerText = 'granted';
+                        // ページリロード
                         location.reload(true);
                     } else {
-                        // 許可を得られなかった場合の処理
-                        document.getElementById('test').innerText = 'not granted';
+                        // 許可を得られなかった場合
+                        // 何もしない
                     }
                 }).catch(console.error) // https通信でない場合などで許可を取得できなかった場合
             } else {
@@ -81,23 +102,18 @@
             && typeof DeviceOrientationEvent.requestPermission === 'function'
             && doeConfirmFlag === "0"
         ) {
-            // 確認ボタンを表示
+            // 確認ボタン表示
             document.getElementById('confirm_btn').hidden = false;
-            document.getElementById('test').innerText = "disp btn\n"
-                + DeviceOrientationEvent + '\n'
-                + DeviceOrientationEvent.requestPermission + "\n"
-                + typeof DeviceOrientationEvent.requestPermission;
         } else {
             // DeviceOrientationEventが存在しない場合の処理
+            // フラグを落とす
             localStorage.setItem("tptm.doeConfirmFlag", "0");
+            // main.jsを読み込む
             var el = document.createElement("script");
             el.src = "main.js?202206230107";
             document.getElementsByTagName('head')[0].appendChild(el);
-            //            document.getElementById('test').innerText = 'start game';
-            document.getElementById('test').innerText = "start game\n"
-                + DeviceOrientationEvent + '\n'
-                + DeviceOrientationEvent.requestPermission + "\n"
-                + typeof DeviceOrientationEvent.requestPermission;
+            // 確認ボタン非表示
+            document.getElementById('confirm_btn').hidden = true;
         }
     </script>
     <canvas id="world"></canvas>
