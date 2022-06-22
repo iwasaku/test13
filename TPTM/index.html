@@ -46,18 +46,22 @@
 </head>
 
 <body>
-    <p id="test">実験33</p>
+    <p id="test">実験34</p>
     <button id="confirm_btn" onclick="permission_request()" hidden>確認</button><br><br>
 
     <script>
+        var doeConfirmFlag = localStorage.getItem("tptm.doeConfirmFlag");
+        if (doeConfirmFlag === null) doeConfirmFlag = "0";
         function permission_request() {
             if (DeviceOrientationEvent
                 && DeviceOrientationEvent.requestPermission
                 && typeof DeviceOrientationEvent.requestPermission === 'function'
             ) {
+                //iOSの時
                 DeviceOrientationEvent.requestPermission().then(permissionState => {
                     if (permissionState === 'granted') {
                         // 許可を得られた場合
+                        localStorage.setItem("tptm.doeConfirmFlag", "1");
                         document.getElementById('confirm_btn').hidden = true;
                         document.getElementById('test').innerText = 'granted';
                         location.reload(true);
@@ -66,14 +70,18 @@
                         document.getElementById('test').innerText = 'not granted';
                     }
                 }).catch(console.error) // https通信でない場合などで許可を取得できなかった場合
+            } else {
+                // それ以外のOS
+                // ここには来ないはず
             }
         }
 
         if (DeviceOrientationEvent
             && DeviceOrientationEvent.requestPermission
             && typeof DeviceOrientationEvent.requestPermission === 'function'
+            && doeConfirmFlag === "0"
         ) {
-            // 確認ボタンを表示とか？
+            // 確認ボタンを表示
             document.getElementById('confirm_btn').hidden = false;
             document.getElementById('test').innerText = "disp btn\n"
                 + DeviceOrientationEvent + '\n'
@@ -81,8 +89,9 @@
                 + typeof DeviceOrientationEvent.requestPermission;
         } else {
             // DeviceOrientationEventが存在しない場合の処理
+            localStorage.setItem("tptm.doeConfirmFlag", "0");
             var el = document.createElement("script");
-            el.src = "main.js?202206200033";
+            el.src = "main.js?202206230107";
             document.getElementsByTagName('head')[0].appendChild(el);
             //            document.getElementById('test').innerText = 'start game';
             document.getElementById('test').innerText = "start game\n"
