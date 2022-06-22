@@ -46,7 +46,10 @@
 </head>
 
 <body>
-    <p id="test">Javascriptを使ってHTMLを書き換えましょう！</p>
+    <p id="test">実験30</p>
+    <button id="confirm_btn" onclick="permission_request()" hidden>確認</button><br><br>
+    <button id="start_btn" onclick="start_request()" hidden>開始</button><br><br>
+
     <script>
         function permission_request() {
             if (DeviceOrientationEvent
@@ -57,6 +60,7 @@
                     if (permissionState === 'granted') {
                         // 許可を得られた場合
                         location.reload(true);
+                        document.getElementById('confirm_btn').hidden = true;
                         document.getElementById('test').innerText = 'granted';
                     } else {
                         // 許可を得られなかった場合の処理
@@ -64,6 +68,9 @@
                     }
                 }).catch(console.error) // https通信でない場合などで許可を取得できなかった場合
             }
+        }
+        function start_request() {
+            location.reload(true);
         }
 
         //        if (DeviceOrientationEvent
@@ -78,12 +85,13 @@
         //            document.getElementsByTagName('head')[0].appendChild(el);
         //            document.getElementById('test').innerText = 'reload';
         //        }
+        document.getElementById('confirm_btn').hidden = false;
+        document.getElementById('start_btn').hidden = false;
         var el = document.createElement("script");
         el.src = "main.js?202206200033";
         document.getElementsByTagName('head')[0].appendChild(el);
     </script>
     <canvas id="world"></canvas>
-    <button onclick="permission_request()">確認ボタン</button><br><br>
 </body>
 
 </html>
