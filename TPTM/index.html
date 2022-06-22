@@ -46,7 +46,7 @@
 </head>
 
 <body>
-    <p id="test">実験32</p>
+    <p id="test">実験33</p>
     <button id="confirm_btn" onclick="permission_request()" hidden>確認</button><br><br>
 
     <script>
@@ -58,9 +58,9 @@
                 DeviceOrientationEvent.requestPermission().then(permissionState => {
                     if (permissionState === 'granted') {
                         // 許可を得られた場合
-                        location.reload(true);
                         document.getElementById('confirm_btn').hidden = true;
                         document.getElementById('test').innerText = 'granted';
+                        location.reload(true);
                     } else {
                         // 許可を得られなかった場合の処理
                         document.getElementById('test').innerText = 'not granted';
@@ -75,13 +75,20 @@
         ) {
             // 確認ボタンを表示とか？
             document.getElementById('confirm_btn').hidden = false;
-            document.getElementById('test').innerText = 'disp_btn';
+            document.getElementById('test').innerText = "disp btn\n"
+                + DeviceOrientationEvent + '\n'
+                + DeviceOrientationEvent.requestPermission + "\n"
+                + typeof DeviceOrientationEvent.requestPermission;
         } else {
             // DeviceOrientationEventが存在しない場合の処理
             var el = document.createElement("script");
             el.src = "main.js?202206200033";
             document.getElementsByTagName('head')[0].appendChild(el);
-            document.getElementById('test').innerText = 'reload';
+            //            document.getElementById('test').innerText = 'start game';
+            document.getElementById('test').innerText = "start game\n"
+                + DeviceOrientationEvent + '\n'
+                + DeviceOrientationEvent.requestPermission + "\n"
+                + typeof DeviceOrientationEvent.requestPermission;
         }
     </script>
     <canvas id="world"></canvas>
