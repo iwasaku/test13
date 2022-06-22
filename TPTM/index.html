@@ -46,9 +46,8 @@
 </head>
 
 <body>
-    <p id="test">実験31</p>
+    <p id="test">実験32</p>
     <button id="confirm_btn" onclick="permission_request()" hidden>確認</button><br><br>
-    <button id="start_btn" onclick="start_request()" hidden>開始</button><br><br>
 
     <script>
         function permission_request() {
@@ -69,9 +68,6 @@
                 }).catch(console.error) // https通信でない場合などで許可を取得できなかった場合
             }
         }
-        function start_request() {
-            location.reload(true);
-        }
 
         if (DeviceOrientationEvent
             && DeviceOrientationEvent.requestPermission
@@ -79,6 +75,7 @@
         ) {
             // 確認ボタンを表示とか？
             document.getElementById('confirm_btn').hidden = false;
+            document.getElementById('test').innerText = 'disp_btn';
         } else {
             // DeviceOrientationEventが存在しない場合の処理
             var el = document.createElement("script");
@@ -86,7 +83,6 @@
             document.getElementsByTagName('head')[0].appendChild(el);
             document.getElementById('test').innerText = 'reload';
         }
-        document.getElementById('start_btn').hidden = true;
     </script>
     <canvas id="world"></canvas>
 </body>
