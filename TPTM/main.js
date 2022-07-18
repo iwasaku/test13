@@ -423,7 +423,7 @@ tm.define("PlayerSprite", {
     },
 
     update: function (app) {
-        if (player.isStarted) {
+        if (this.status.isStarted) {
             if (eGamma < 0) this.xAcc = -1;
             else if (eGamma > 0) this.xAcc = 1;
             else this.xAcc = 0;
