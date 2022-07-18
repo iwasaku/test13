@@ -371,6 +371,9 @@ tm.define("GameScene", {
         this.nowDepthLabel.text = dbgMsg;
         this.nowScoreLabel.text = player.score;
         this.nowScoreLabel.text = "[" + eAlpha + "," + eBeta + "," + eGamma + "]";
+        if (player.status.isStarted) {
+            this.nowScoreLabel.text = "[" + player.xPos + "," + player.xSpd + "," + player.xAcc + "," + eGamma + "]";
+        }
 
         ++frame;
     }
