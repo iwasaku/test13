@@ -430,10 +430,12 @@ tm.define("PlayerSprite", {
             if (eGamma < 0) this.xAcc = -1;
             else if (eGamma > 0) this.xAcc = 1;
             else this.xAcc = 0;
+
             if (eBeta < 0) this.yAcc = -1;
             else if (eBeta > 0) this.yAcc = 1;
             else this.yAcc = 0;
 
+            this.xAcc = 1;
             this.xSpd += this.xAcc;
             //            this.ySpd += this.yAcc;
 
