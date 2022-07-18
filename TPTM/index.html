@@ -78,7 +78,7 @@
 </head>
 
 <body>
-    <p id="test">実験35</p>
+    <p id="test">実験36</p>
     <p class="align-center">
         Initialize<br>
         <br>
@@ -122,17 +122,23 @@
             // 確認ボタン表示
             document.getElementById('confirm_btn').hidden = false;
         } else {
-            document.getElementById('confirm_btn').hidden = false;
-            //            // DeviceOrientationEventが存在しない場合
-            //            // DeviceOrientationEventを使用するのを確認済みの場合
-            //            // フラグを落とす
-            //            localStorage.setItem("tptm.doeConfirmFlag", "0");
-            //            // main.jsを読み込む
-            //            var el = document.createElement("script");
-            //            el.src = "main.js?202206230107";
-            //            document.getElementsByTagName('head')[0].appendChild(el);
-            //            // 確認ボタン非表示
-            //            document.getElementById('confirm_btn').hidden = true;
+            if (false) {
+                // Initialize画面表示実験用
+                // 後で消す
+                document.getElementById('confirm_btn').hidden = false;
+            } else {
+                // 本番用
+                // DeviceOrientationEventが存在しない場合
+                // DeviceOrientationEventを使用するのを確認済みの場合
+                // フラグを落とす
+                localStorage.setItem("tptm.doeConfirmFlag", "0");
+                // main.jsを読み込む
+                var el = document.createElement("script");
+                el.src = "main.js?202206230107";
+                document.getElementsByTagName('head')[0].appendChild(el);
+                // 確認ボタン非表示
+                document.getElementById('confirm_btn').hidden = true;
+            }
         }
     </script>
     <canvas id="world"></canvas>
