@@ -435,12 +435,12 @@ tm.define("PlayerSprite", {
             else if (eBeta > 0) this.yAcc = 1;
             else this.yAcc = 0;
 
-            this.xAcc = 1;
             this.xSpd += this.xAcc;
             //            this.ySpd += this.yAcc;
 
             this.xPos += this.xSpd;
             //            this.yPos += this.ySpd;
+            this.setPosition(this.xPos, this.yPos).setScale(1, 1);
         }
     },
 });
