@@ -427,16 +427,15 @@ tm.define("PlayerSprite", {
 
     update: function (app) {
         if (this.status.isStarted) {
-            if (eGamma < 0) this.xAcc = -1;
-            else if (eGamma > 0) this.xAcc = 1;
-            else this.xAcc = 0;
+            this.xAcc = eGamma / 90;
 
             if (eBeta < 0) this.yAcc = -1;
             else if (eBeta > 0) this.yAcc = 1;
             else this.yAcc = 0;
 
-            this.xSpd = this.xAcc;
-            //            this.ySpd += this.yAcc;
+            this.xSpd += this.xAcc;
+            if (this.xSpd >= 64) this.xSpd = 64;
+            if (this.xSpd <= -64) this.xSpd = -64;
 
             this.xPos += this.xSpd;
             //            this.yPos += this.ySpd;
