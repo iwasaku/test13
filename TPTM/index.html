@@ -37,11 +37,22 @@
         }
 
         body {
-            background-color: #ffffff;
+            font-family: "misaki_gothic", sans-serif;
+            font-size: xxx-large;
+            color: #FFFFFF;
+            background-color: #1f1f1f;
+        }
+
+        button {
+            font-family: "misaki_gothic", sans-serif;
+            font-size: xxx-large;
+            content: "";
+            display: inline-block;
+            height: 42px;
+            vertical-align: middle;
         }
 
         .position-absolute {
-            background: yellow;
             position: absolute;
             /*要素を浮かす*/
             /*relativeを指定した親要素を支点とした位置をすべて0に指定↓*/
@@ -56,6 +67,10 @@
             height: 100px;
             /*heightの指定は必須*/
         }
+
+        .align-center {
+            text-align: center;
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/gh/phi-jp/tmlib.js@0.3.0/build/tmlib.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.1.2/howler.min.js"></script>
@@ -64,9 +79,11 @@
 
 <body>
     <p id="test">実験35</p>
-    <div class="position-absolute">
-        <button id="confirm_btn" onclick="permission_request()" hidden>動作と方向へのアクセス許可</button><br><br>
-    </div>
+    <p class="align-center">
+        Initialize<br>
+        <br>
+        <button id="confirm_btn" onclick="permission_request()" hidden>START</button><br><br>
+    </p>
 
     <script>
         var doeConfirmFlag = localStorage.getItem("tptm.doeConfirmFlag");
@@ -105,15 +122,17 @@
             // 確認ボタン表示
             document.getElementById('confirm_btn').hidden = false;
         } else {
-            // DeviceOrientationEventが存在しない場合の処理
-            // フラグを落とす
-            localStorage.setItem("tptm.doeConfirmFlag", "0");
-            // main.jsを読み込む
-            var el = document.createElement("script");
-            el.src = "main.js?202206230107";
-            document.getElementsByTagName('head')[0].appendChild(el);
-            // 確認ボタン非表示
-            document.getElementById('confirm_btn').hidden = true;
+            document.getElementById('confirm_btn').hidden = false;
+            //            // DeviceOrientationEventが存在しない場合
+            //            // DeviceOrientationEventを使用するのを確認済みの場合
+            //            // フラグを落とす
+            //            localStorage.setItem("tptm.doeConfirmFlag", "0");
+            //            // main.jsを読み込む
+            //            var el = document.createElement("script");
+            //            el.src = "main.js?202206230107";
+            //            document.getElementsByTagName('head')[0].appendChild(el);
+            //            // 確認ボタン非表示
+            //            document.getElementById('confirm_btn').hidden = true;
         }
     </script>
     <canvas id="world"></canvas>

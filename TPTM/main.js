@@ -1,6 +1,6 @@
 //console.log = function () { };  // ログを出す時にはコメントアウトする
 
-const SCREEN_WIDTH = 1280 - 128;             // スクリーン幅
+const SCREEN_WIDTH = 1280;             // スクリーン幅
 const SCREEN_HEIGHT = 2436;                 // スクリーン高さ
 const SCREEN_CENTER_X = SCREEN_WIDTH / 2;   // スクリーン幅の半分
 const SCREEN_CENTER_Y = SCREEN_HEIGHT / 2;  // スクリーン高さの半分
@@ -10,6 +10,7 @@ const FPS = 60; // 60フレ
 const FONT_FAMILY = "'misaki_gothic','Meiryo',sans-serif";
 const ASSETS = {
     "nmls": "./resource/new_nmls_128.png",
+    "rock": "./resource/planet_128.png",
 };
 const fallSE = new Howl({
     src: 'https://iwasaku.github.io/test7/NEMLESSSTER/resource/fall.mp3?20200708'
@@ -62,10 +63,10 @@ class CharaStatus {
 }
 
 // 表示プライオリティは 0：奥 → 4：手前 の順番
-let group0 = null;  // bg0
-let group1 = null;  // bg1
-let group2 = null;  // enemy,item
-let group3 = null;  // fg
+let group0 = null;  // bg0  水色
+let group1 = null;  // bg1  黒色
+let group2 = null;  // rock,enemy,item
+let group3 = null;  // fg   ライトステンシル
 let group4 = null;  // player
 let group5 = null;  // status
 
@@ -76,12 +77,22 @@ const DIR_KEY_DEF = defineEnum({
         addY: 0,
     },
     LEFT: {
-        value: 2,
+        value: 1,
         addX: -1,
         addY: 0,
     },
     RIGHT: {
-        value: 6,
+        value: 2,
+        addX: 1,
+        addY: 0,
+    },
+    UP: {
+        value: 3,
+        addX: -1,
+        addY: 0,
+    },
+    DOWN: {
+        value: 4,
         addX: 1,
         addY: 0,
     },
@@ -196,7 +207,7 @@ tm.define("TitleScene", {
         this.startButton.onpointingstart = function () {
             window.addEventListener('deviceorientation', function (e) {
                 eAlpha = e.alpha;   // 未使用
-                eBeta = e.beta; // 縦加速（-180～180°）
+                eBeta = e.beta;     // 縦加速（-180～180°）
                 eGamma = e.gamma;   // 横加速（-90～90°）
             }, false);
             //            requestDeviceOrientationPermission();
@@ -221,7 +232,7 @@ tm.define("GameScene", {
 
         group0 = tm.display.CanvasElement().addChildTo(this);   // BG0（水色）
         group1 = tm.display.CanvasElement().addChildTo(this);   // BG1（黒色）
-        group2 = tm.display.CanvasElement().addChildTo(this);   // 敵、アイテム
+        group2 = tm.display.CanvasElement().addChildTo(this);   // 岩、敵、アイテム
         group3 = tm.display.CanvasElement().addChildTo(this);   // FG（ライトステンシル）
         group4 = tm.display.CanvasElement().addChildTo(this);   // プレイヤー
         group5 = tm.display.CanvasElement().addChildTo(this);   // ステータス
@@ -392,13 +403,12 @@ tm.define("PlayerSprite", {
 
         this.superInit(ss, 128, 128);
         this.direct = '';
-        this.zRot = 0;
-        this.xBgPos = 4;
-        this.yBgPos = 5;
-        this.isEven = true;
-        this.xOfs = this.isEven ? 64 : 0;
-        this.xPos = (this.xBgPos * 128) + this.xOfs;
-        this.yPos = (this.yBgPos * 128) + 64;
+        this.xPos = SCREEN_CENTER_X;
+        this.yPos = SCREEN_CENTER_Y;    // とりあえず
+        this.xAcc = 0.0;
+        this.yAcc = 0.0;
+        this.xSpd = 0.0;
+        this.ySpd = 0.0;
         this.setPosition(this.xPos, this.yPos).setScale(1, 1);
         this.setInteractive(false);
         this.setBoundingType("rect");
@@ -409,35 +419,61 @@ tm.define("PlayerSprite", {
         this.status = PL_STATUS.INIT;
         this.depth = 0;
         this.score = 0;
-        this.oxygen = 100 * FPS;
+        this.oxygen = 100 * FPS;    // 100秒分
     },
 
     update: function (app) {
+        if (player.isStarted) {
+            if (eGamma < 0) this.xAcc = -1;
+            else if (eGamma > 0) this.xAcc = 1;
+            else this.xAcc = 0;
+            if (eBeta < 0) this.yAcc = -1;
+            else if (eBeta > 0) this.yAcc = 1;
+            else this.yAcc = 0;
+
+            this.xSpd += this.xAcc;
+            //            this.ySpd += this.yAcc;
+
+            this.xPos += this.xSpd;
+            //            this.yPos += this.ySpd;
+        }
     },
 });
 
-const requestDeviceOrientationPermission = () => {
-    //    if (DeviceOrientationEvent
-    //        && DeviceOrientationEvent.requestPermission
-    //        && typeof DeviceOrientationEvent.requestPermission === 'function'
-    //    ) {
-    //        DeviceOrientationEvent.requestPermission()
-    //            .then(permissionState => {
-    //                if (permissionState === 'granted') {
-    //                    // 許可を得られた場合、deviceorientationをイベントリスナーに追加
-    //                } else {
-    //                    // 許可を得られなかった場合の処理
-    //                }
-    //            })
-    //            .catch(console.error) // https通信でない場合などで許可を取得できなかった場合
-    //    }
-    if (DeviceOrientationEvent
-        && DeviceOrientationEvent.requestPermission
-        && typeof DeviceOrientationEvent.requestPermission === 'function'
-    ) {
-        DeviceOrientationEvent.requestPermission();
-    }
-}
+/*
+ * Rock
+ */
+tm.define("RockSprite", {
+    superClass: "tm.app.Sprite",
+
+    init: function (posX, posY) {
+        this.spriteName = "rock";
+        this.superInit(this.spriteName, 1280, 128);
+        this.direct = '';
+        this.setInteractive(false);
+        this.setBoundingType("circle");
+        this.radius = 80;
+        this.vec = tm.geom.Vector2(spdX, spdY);
+        this.setPosition(posX, posY).setScale(1, 1);
+    },
+
+    update: function (app) {
+        if (player.status.isDead) return;
+
+        this.position.add(this.vec);
+
+        if (this.x < 0 - 64) this.x = SCREEN_WIDTH + 64;
+        if (this.x > SCREEN_WIDTH + 64) this.x = 0 - 64;
+        if (this.y < 0 - 64) this.y = SCREEN_HEIGHT + 64;
+        if (this.y > SCREEN_HEIGHT + 64) this.y = 0 - 64;
+
+
+        // 自機との衝突判定
+        if (chkCollisionRectPlayer(this, player)) {
+            player.status = PL_STATUS.DEAD;
+        }
+    },
+});
 
 // 指定の範囲で乱数を求める
 // ※start < end
@@ -455,4 +491,39 @@ function myRandom(start, end) {
         }
         return (randomSeed % mod) + start;
     }
+}
+
+/**
+ * 矩形当たり判定
+ * https://yttm-work.jp/collision/collision_0005.html
+ * @param {*} rect_a_x 
+ * @param {*} rect_a_y 
+ * @param {*} rect_a_w 
+ * @param {*} rect_a_h 
+ * @param {*} rect_b_x 
+ * @param {*} rect_b_y 
+ * @param {*} rect_b_w 
+ * @param {*} rect_b_h 
+ * @returns 
+ */
+function chkCollisionRect(rect_a_x, rect_a_y, rect_a_w, rect_a_h, rect_b_x, rect_b_y, rect_b_w, rect_b_h) {
+    // X軸、Y軸の距離
+    distance_x = abs(rect_a_x - rect_b_x);
+    distance_y = abs(rect_a_y - rect_b_y);
+
+    // ２つの矩形のX軸、Y軸のサイズの和を算出する
+    size_sum_x = (rect_a_w + rect_b_w) / 2.0;
+    size_sum_y = (rect_a_h + rect_b_h) / 2.0;
+
+    // サイズの和と距離を比較する
+    if ((distance_x < size_sum_x) && (distance_y < size_sum_y)) {
+        return true;
+    }
+    return false;
+}
+function chkCollisionRectOfs(rect_a_x, rect_a_y, rect_a_x_ofs, rect_a_y_ofs, rect_a_w, rect_a_h, rect_b_x, rect_b_y, rect_b_x_ofs, rect_b_y_ofs, rect_b_w, rect_b_h) {
+    return chkCollisionRect(rect_a_x + rect_a_x_ofs, rect_a_y + rect_a_y_ofs, rect_a_w, rect_a_h, rect_b_x + rect_b_x_ofs, rect_b_y + rect_b_y_ofs, rect_b_w, rect_b_h);
+}
+function chkCollisionRectOfs(tmpRock, tmpPlayer) {
+    return chkCollisionRect(tmpRock.x, tmpRock.y, 1280, 128, tmpPlayer.x, tmpPlayer.y, 128, 128);
 }
