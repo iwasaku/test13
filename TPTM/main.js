@@ -209,10 +209,13 @@ tm.define("TitleScene", {
         var self = this;
         this.startButton.onpointingstart = function () {
             window.addEventListener('deviceorientation', function (e) {
-                let tmp = getQuaternion(e.alpha, e.beta, e.gamma);
-                eAlpha = tmp[0];    // e.alpha  未使用
-                eBeta = tmp[1];     // e.beta   縦加速（-180～180°）
-                eGamma = tmo[2];    // e.gamma  横加速（-90～90°）
+                //                let tmp = getQuaternion(e.alpha, e.beta, e.gamma);
+                //                eAlpha = tmp[0];    // e.alpha  未使用
+                //                eBeta = tmp[1];     // e.beta   縦加速（-180～180°）
+                //                eGamma = tmo[2];    // e.gamma  横加速（-90～90°）
+                eAlpha = e.alpha;  //未使用
+                eBeta = e.beta;  //縦加速（-180～180°）
+                eGamma = e.gamma;  //横加速（-90～90°）
             }, false);
             //            requestDeviceOrientationPermission();
             self.app.replaceScene(GameScene());
