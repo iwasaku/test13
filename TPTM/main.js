@@ -65,10 +65,11 @@ class CharaStatus {
 // 表示プライオリティは 0：奥 → 4：手前 の順番
 let group0 = null;  // bg0  水色
 let group1 = null;  // bg1  黒色
-let group2 = null;  // rock,enemy,item
-let group3 = null;  // fg   ライトステンシル
-let group4 = null;  // player
-let group5 = null;  // status
+let group2 = null;  // enemy,item
+let group3 = null;  // rock
+let group4 = null;  // fg   ライトステンシル
+let group5 = null;  // player
+let group6 = null;  // status
 
 const DIR_KEY_DEF = defineEnum({
     NONE: {
@@ -99,6 +100,8 @@ const DIR_KEY_DEF = defineEnum({
 });
 
 let player = null;
+var rockLeftArray = [];
+var rockRightArray = [];
 let eAlpha = 0;
 let eBeta = 0;
 let eGamma = 0;
@@ -206,9 +209,10 @@ tm.define("TitleScene", {
         var self = this;
         this.startButton.onpointingstart = function () {
             window.addEventListener('deviceorientation', function (e) {
-                eAlpha = e.alpha;   // 未使用
-                eBeta = e.beta;     // 縦加速（-180～180°）
-                eGamma = e.gamma;   // 横加速（-90～90°）
+                let tmp = getQuaternion(e.alpha, e.beta, e.gamma);
+                eAlpha = tmp[0];    // e.alpha  未使用
+                eBeta = tmp[1];     // e.beta   縦加速（-180～180°）
+                eGamma = tmo[2];    // e.gamma  横加速（-90～90°）
             }, false);
             //            requestDeviceOrientationPermission();
             self.app.replaceScene(GameScene());
@@ -232,12 +236,20 @@ tm.define("GameScene", {
 
         group0 = tm.display.CanvasElement().addChildTo(this);   // BG0（水色）
         group1 = tm.display.CanvasElement().addChildTo(this);   // BG1（黒色）
-        group2 = tm.display.CanvasElement().addChildTo(this);   // 岩、敵、アイテム
-        group3 = tm.display.CanvasElement().addChildTo(this);   // FG（ライトステンシル）
-        group4 = tm.display.CanvasElement().addChildTo(this);   // プレイヤー
-        group5 = tm.display.CanvasElement().addChildTo(this);   // ステータス
+        group2 = tm.display.CanvasElement().addChildTo(this);   // 敵、アイテム
+        group3 = tm.display.CanvasElement().addChildTo(this);   // 岩
+        group4 = tm.display.CanvasElement().addChildTo(this);   // FG（ライトステンシル）
+        group5 = tm.display.CanvasElement().addChildTo(this);   // プレイヤー
+        group6 = tm.display.CanvasElement().addChildTo(this);   // ステータス
 
+        clearArrays();
         player = new PlayerSprite().addChildTo(group4);
+        for (let ii = 0; ii < 22; ii++) {
+            let rockL = RockSprite(ii, SCREEN_CENTER_X - 128 * 6, 128 * ii).addChildTo(group3);
+            rockLeftArray.push(rockL);
+            let rockR = RockSprite(ii, SCREEN_CENTER_X + 128 * 6, 128 * ii).addChildTo(group3);
+            rockRightArray.push(rockR);
+        }
 
         this.fromJSON({
             children: [
@@ -366,6 +378,7 @@ tm.define("GameScene", {
                 this.gameOverLabel.setAlpha(0.0);
                 player.status = PL_STATUS.START;
             }
+            rockScroll();
         }
         this.nowDepthLabel.text = player.depth + "m";
         this.nowDepthLabel.text = dbgMsg;
@@ -429,16 +442,20 @@ tm.define("PlayerSprite", {
         if (this.status.isStarted) {
             this.xAcc = eGamma / 90;
 
-            if (eBeta < 0) this.yAcc = -1;
-            else if (eBeta > 0) this.yAcc = 1;
-            else this.yAcc = 0;
+            let tmpBeta = eBeta;
+            if (tmpBeta < 0) tmpBeta = 0;
+            else if (tmpBeta > 90) tmpBeta = 90;
+            this.yAcc = (tmpBeta - 45) / 45;
 
             this.xSpd += this.xAcc;
             if (this.xSpd >= 64) this.xSpd = 64;
             if (this.xSpd <= -64) this.xSpd = -64;
 
+            this.ySpd += this.yAcc;
+            if (this.ySpd >= 64) this.ySpd = 64;
+            if (this.ySpd <= 0) this.ySpd = 0;
+
             this.xPos += this.xSpd;
-            //            this.yPos += this.ySpd;
 
             this.setPosition(this.xPos, this.yPos).setScale(1, 1);
         }
@@ -451,34 +468,126 @@ tm.define("PlayerSprite", {
 tm.define("RockSprite", {
     superClass: "tm.app.Sprite",
 
-    init: function (posX, posY) {
+    init: function (idx, posX, posY) {
         this.spriteName = "rock";
         this.superInit(this.spriteName, 1280, 128);
         this.direct = '';
         this.setInteractive(false);
-        this.setBoundingType("circle");
-        this.radius = 80;
-        this.vec = tm.geom.Vector2(spdX, spdY);
-        this.setPosition(posX, posY).setScale(1, 1);
+        this.setBoundingType("rect");
+        this.idx = idx;
+        this.xPos = posX;
+        this.yPos = posY;
+        this.setPosition(this.xPos, this.yPos).setScale(1, 1);
+        this.ySpd = 0;
+        this.ySpdFlag = 1;
     },
 
     update: function (app) {
         if (player.status.isDead) return;
 
-        this.position.add(this.vec);
-
-        if (this.x < 0 - 64) this.x = SCREEN_WIDTH + 64;
-        if (this.x > SCREEN_WIDTH + 64) this.x = 0 - 64;
-        if (this.y < 0 - 64) this.y = SCREEN_HEIGHT + 64;
-        if (this.y > SCREEN_HEIGHT + 64) this.y = 0 - 64;
+        //        this.position.add(this.vec);
+        if (this.ySpdFlag > 0) {
+            this.ySpd += 0.1;
+            if (this.ySpd >= 64) {
+                this.ySpd = 64;
+                this.ySpdFlag = -1;
+            }
+        } else {
+            this.ySpd -= 0.1;
+            if (this.ySpd <= 0) {
+                this.ySpd = 0;
+                this.ySpdFlag = 1;
+            }
+        }
+        this.yPos -= player.ySpd;
+        this.setPosition(this.xPos, this.yPos);
 
 
         // 自機との衝突判定
-        if (chkCollisionRectPlayer(this, player)) {
-            player.status = PL_STATUS.DEAD;
-        }
+        //        if (chkCollisionRectPlayer(this, player)) {
+        //            player.status = PL_STATUS.DEAD;
+        //        }
     },
 });
+
+function rockScroll() {
+    var self = this;
+
+    var tmpRockLeft = null;
+    var tmpRockRight = null;
+    for (let ii = self.rockLeftArray.length - 1; ii >= 0; ii--) {
+        if (self.rockLeftArray[ii].yPos <= -128) {
+            tmpRockLeft = self.rockLeftArray[ii];
+            break;
+        }
+    }
+    if (tmpRockLeft !== null) {
+        for (let ii = self.rockRightArray.length - 1; ii >= 0; ii--) {
+            if (self.rockRightArray[ii].idx === tmpRockLeft.idx) {
+                tmpRockRight = self.rockRightArray[ii];
+                break;
+            }
+        }
+
+        // 最後尾のxPos、yPosを取得
+        var eolPos = getEndOfLinePos();
+
+        // XPosは範囲内でランダム
+        // ±128固定か、通路の幅から求めるか
+        var tmpXpos = eolPos.x + ((myRandom(0, 20) - 10) / 10.0) * 128.0;
+        if (tmpXpos <= 128 * 3) tmpXpos = 128 * 3;
+        if (tmpXpos >= SCREEN_WIDTH - 128 * 3) tmpXpos = SCREEN_WIDTH - 128 * 3;
+
+        // Yposは128px下で決め打ちOK
+        var tmpYpos = eolPos.y + 128;
+        tmpRockLeft.yPos = tmpYpos;
+        tmpRockRight.yPos = tmpYpos;
+
+        tmpRockLeft.xPos = tmpXpos - 128 * 6;
+        tmpRockRight.xPos = tmpXpos + 128 * 6;
+        if (tmpRockLeft.xPos < SCREEN_CENTER_X - 128 * 9) tmpRockLeft.xPos = SCREEN_CENTER_X - 128 * 9;
+        if (tmpRockRight.xPos > SCREEN_CENTER_X + 128 * 9) tmpRockRight.xPos = SCREEN_CENTER_X + 128 * 9;
+    }
+}
+
+function getEndOfLinePos() {
+    var self = this;
+    let ret = tm.geom.Vector2(SCREEN_CENTER_X, Number.MIN_VALUE);
+    let tmpRockL = null;
+    let tmpRockR = null;
+    for (let ii = 0; ii < self.rockLeftArray.length; ii++) {
+        if (ret.y < self.rockLeftArray[ii].yPos) {
+            ret.y = self.rockLeftArray[ii].yPos;
+            tmpRockL = self.rockLeftArray[ii];
+        }
+    }
+    for (let ii = 0; ii < self.rockRightArray.length; ii++) {
+        if (tmpRockL.idx === self.rockRightArray[ii].idx) {
+            tmpRockR = self.rockRightArray[ii];
+            break;
+        }
+    }
+    ret.x = (tmpRockL.xPos + tmpRockR.xPos) / 2;
+    return ret;
+}
+
+// 配列クリア
+function clearArrays() {
+    var self = this;
+
+    for (let ii = self.rockLeftArray.length - 1; ii >= 0; ii--) {
+        let tmp = self.rockLeftArray[ii];
+        if (tmp.parent == null) console.log("NULL!!");
+        else tmp.remove();
+        self.rockLeftArray.erase(tmp);
+    }
+    for (let ii = self.rockRightArray.length - 1; ii >= 0; ii--) {
+        let tmp = self.rockRightArray[ii];
+        if (tmp.parent == null) console.log("NULL!!");
+        else tmp.remove();
+        self.rockRightArray.erase(tmp);
+    }
+}
 
 // 指定の範囲で乱数を求める
 // ※start < end
@@ -496,6 +605,26 @@ function myRandom(start, end) {
         }
         return (randomSeed % mod) + start;
     }
+}
+
+function getQuaternion(alpha, beta, gamma) {
+    var _x = beta ? beta * degtorad : 0; // beta value
+    var _y = gamma ? gamma * degtorad : 0; // gamma value
+    var _z = alpha ? alpha * degtorad : 0; // alpha value
+
+    var cX = Math.cos(_x / 2);
+    var cY = Math.cos(_y / 2);
+    var cZ = Math.cos(_z / 2);
+    var sX = Math.sin(_x / 2);
+    var sY = Math.sin(_y / 2);
+    var sZ = Math.sin(_z / 2);
+
+    var w = cX * cY * cZ - sX * sY * sZ;
+    var x = sX * cY * cZ - cX * sY * sZ;
+    var y = cX * sY * cZ + sX * cY * sZ;
+    var z = cX * cY * sZ + sX * sY * cZ;
+
+    return [x, y, z, w];
 }
 
 /**
