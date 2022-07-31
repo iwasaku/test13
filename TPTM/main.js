@@ -186,7 +186,7 @@ tm.define("TitleScene", {
                     fillStyle: "#fff",
                     fontSize: 160,
                     fontFamily: FONT_FAMILY,
-                    text: "TPTM\n35",
+                    text: "TPTM",
                     align: "center",
                 },
                 {
@@ -369,6 +369,7 @@ tm.define("GameScene", {
                 fallSE.play();
                 player.status = PL_STATUS.DEAD;
             }
+            player.ySpd = 0;
 
             var self = this;
             // tweet ボタン
@@ -426,11 +427,11 @@ tm.define("GameScene", {
         }
         this.nowDepthLabel.text = (player.depth / 100.0).toFixed(2) + "m";
         //        this.nowDepthLabel.text = dbgMsg;
-        //        this.nowScoreLabel.text = player.score;
+        this.nowScoreLabel.text = player.score;
         //        this.nowScoreLabel.text = "[" + eAlpha + "," + eBeta + "," + eGamma + "]";
-        //        if (player.status.isStarted) {
-        //            this.nowScoreLabel.text = "[" + player.xPos + "," + player.xSpd + "," + player.xAcc + "," + eGamma + "]";
-        //        }
+        //if (player.status.isStarted) {
+        //    this.nowScoreLabel.text = "[" + player.xPos + "," + player.xSpd + "," + player.xAcc + "," + eGamma + "]";
+        //}
 
         ++frame;
     }
@@ -467,7 +468,7 @@ tm.define("PlayerSprite", {
         this.yPos = SCREEN_CENTER_Y;    // とりあえず
         this.xAcc = 0.0;
         this.yAcc = 0.0;
-        this.xSpd = 0.0;
+        this.xSpd = -1;
         this.ySpd = 0.0;
         this.setPosition(this.xPos, this.yPos).setScale(1, 1);
         this.setInteractive(false);
@@ -480,7 +481,10 @@ tm.define("PlayerSprite", {
         this.depth = 0;
         this.score = 0;
         this.oxygen = 100 * FPS;    // 100秒分
-        this.xFlag = 1;
+        this.xFlag = 1; // for debug
+        this.oldDepth = 0;
+        this.ySpdCounter = 0;
+        this.ySpdTotal = 0;
     },
 
     update: function (app) {
@@ -507,6 +511,14 @@ tm.define("PlayerSprite", {
             this.xPos += this.xSpd;
             this.depth += this.ySpd;
 
+            this.ySpdCounter++;
+            this.ySpdTotal += this.ySpd;
+            if (this.depth >= this.oldDepth + 100) {
+                this.score += Math.round(this.ySpdTotal / this.ySpdCounter);
+                this.oldDepth = this.depth;
+                this.ySpdCounter = 0;
+                this.ySpdTotal = 0;
+            }
             // for debug
             //            if (this.xFlag === 1) {
             //                if (this.xPos >= SCREEN_WIDTH) {
@@ -548,7 +560,6 @@ tm.define("RockSprite", {
     },
 
     update: function (app) {
-        if (player.status.isDead) return;
 
         //        this.position.add(this.vec);
         //        if (this.ySpdFlag > 0) {
@@ -567,7 +578,7 @@ tm.define("RockSprite", {
         this.yPos -= player.ySpd;
         this.setPosition(this.xPos, this.yPos);
 
-
+        if (player.status.isDead) return;
         // 自機との衝突判定
         if (chkCollisionRectEne2Player(this, player)) {
             player.status = PL_STATUS.DEAD;
