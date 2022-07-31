@@ -375,7 +375,7 @@ tm.define("GameScene", {
             this.tweetButton.onclick = function () {
                 var twitterURL = tm.social.Twitter.createURL({
                     type: "tweet",
-                    text: "水深" + (player.depth / 100.0) + "m に到達（スコア：" + player.score + "）",
+                    text: "水深" + (player.depth / 100.0).toFixed(2) + "m に到達（スコア：" + player.score + "）",
                     hashtags: ["TPTM", "ネムレス", "NEMLESSS"],
                     url: "https://iwasaku.github.io/test13/TPTM/",
                 });
@@ -424,7 +424,7 @@ tm.define("GameScene", {
                 this.fgSprite[2].setAlpha(1.0);
             }
         }
-        this.nowDepthLabel.text = (player.depth / 100.0) + "m";
+        this.nowDepthLabel.text = (player.depth / 100.0).toFixed(2) + "m";
         //        this.nowDepthLabel.text = dbgMsg;
         //        this.nowScoreLabel.text = player.score;
         //        this.nowScoreLabel.text = "[" + eAlpha + "," + eBeta + "," + eGamma + "]";
@@ -497,12 +497,12 @@ tm.define("PlayerSprite", {
             //            this.yAcc = 1;
 
             this.xSpd += this.xAcc;
-            if (this.xSpd >= 64) this.xSpd = 64;
-            if (this.xSpd <= -64) this.xSpd = -64;
+            if (this.xSpd >= 64.0) this.xSpd = 64.0;
+            if (this.xSpd <= -64.0) this.xSpd = -64.0;
 
             this.ySpd += this.yAcc;
-            if (this.ySpd >= 64) this.ySpd = 64;
-            if (this.ySpd <= 0) this.ySpd = 0;
+            if (this.ySpd >= 64.0) this.ySpd = 64.0;
+            if (this.ySpd <= 1.0) this.ySpd = 1.0;
 
             this.xPos += this.xSpd;
             this.depth += this.ySpd;
@@ -551,19 +551,19 @@ tm.define("RockSprite", {
         if (player.status.isDead) return;
 
         //        this.position.add(this.vec);
-        if (this.ySpdFlag > 0) {
-            this.ySpd += 0.1;
-            if (this.ySpd >= 64) {
-                this.ySpd = 64;
-                this.ySpdFlag = -1;
-            }
-        } else {
-            this.ySpd -= 0.1;
-            if (this.ySpd <= 0.1) {
-                this.ySpd = 0.1;
-                this.ySpdFlag = 1;
-            }
-        }
+        //        if (this.ySpdFlag > 0) {
+        //            this.ySpd += 0.1;
+        //            if (this.ySpd >= 64) {
+        //                this.ySpd = 64;
+        //                this.ySpdFlag = -1;
+        //            }
+        //        } else {
+        //            this.ySpd -= 0.1;
+        //            if (this.ySpd <= 0) {
+        //                this.ySpd = 0;
+        //                this.ySpdFlag = 1;
+        //            }
+        //        }
         this.yPos -= player.ySpd;
         this.setPosition(this.xPos, this.yPos);
 
