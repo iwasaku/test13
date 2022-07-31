@@ -559,8 +559,8 @@ tm.define("RockSprite", {
             }
         } else {
             this.ySpd -= 0.1;
-            if (this.ySpd <= 0) {
-                this.ySpd = 0;
+            if (this.ySpd <= 0.1) {
+                this.ySpd = 0.1;
                 this.ySpdFlag = 1;
             }
         }
@@ -801,5 +801,5 @@ function chkCollisionRectOfs(rect_a_x, rect_a_y, rect_a_x_ofs, rect_a_y_ofs, rec
     return chkCollisionRect(rect_a_x + rect_a_x_ofs, rect_a_y + rect_a_y_ofs, rect_a_w, rect_a_h, rect_b_x + rect_b_x_ofs, rect_b_y + rect_b_y_ofs, rect_b_w, rect_b_h);
 }
 function chkCollisionRectEne2Player(tmpEne, tmpPlayer) {
-    return chkCollisionRect(tmpEne.x, tmpEne.y, 1280, 128, tmpPlayer.x, tmpPlayer.y, 128, 128);
+    return chkCollisionRect(tmpEne.x, tmpEne.y, 1280 * 0.9, 128 * 0.9, tmpPlayer.x, tmpPlayer.y, 128 * 0.9, 128 * 0.9);
 }
