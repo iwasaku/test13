@@ -11,6 +11,8 @@ const FONT_FAMILY = "'misaki_gothic','Meiryo',sans-serif";
 const ASSETS = {
     "nmls": "./resource/new_nmls_128.png",
     "rock": "./resource/planet_128.png",
+    "bg_sprite": "./resource/bg.png",
+    "fg_sprite": "./resource/fg.png",
 };
 const fallSE = new Howl({
     src: 'https://iwasaku.github.io/test7/NEMLESSSTER/resource/fall.mp3?20200708'
@@ -63,8 +65,8 @@ class CharaStatus {
 }
 
 // 表示プライオリティは 0：奥 → 4：手前 の順番
-let group0 = null;  // bg0  水色
-let group1 = null;  // bg1  黒色
+let group0 = null;  // bg0  黒色
+let group1 = null;  // bg1  水色
 let group2 = null;  // enemy,item
 let group3 = null;  // rock
 let group4 = null;  // fg   ライトステンシル
@@ -237,20 +239,35 @@ tm.define("GameScene", {
         this.superInit();
         if (!randomMode) randomSeed = 3557;
 
-        group0 = tm.display.CanvasElement().addChildTo(this);   // BG0（水色）
-        group1 = tm.display.CanvasElement().addChildTo(this);   // BG1（黒色）
+        group0 = tm.display.CanvasElement().addChildTo(this);   // BG0（黒色）
+        group1 = tm.display.CanvasElement().addChildTo(this);   // BG1（水色）
         group2 = tm.display.CanvasElement().addChildTo(this);   // 敵、アイテム
         group3 = tm.display.CanvasElement().addChildTo(this);   // 岩
         group4 = tm.display.CanvasElement().addChildTo(this);   // FG（ライトステンシル）
         group5 = tm.display.CanvasElement().addChildTo(this);   // プレイヤー
         group6 = tm.display.CanvasElement().addChildTo(this);   // ステータス
 
+        this.bgSprite = tm.display.Sprite("bg_sprite", SCREEN_WIDTH, SCREEN_HEIGHT).addChildTo(group1);
+        this.bgSprite.setPosition(SCREEN_CENTER_X, SCREEN_CENTER_Y);
+        this.bgSprite.setAlpha(1.0);
+        this.fgSprite = [null, null, null];
+        this.fgSprite[0] = tm.display.Sprite("bg_sprite", SCREEN_WIDTH, SCREEN_HEIGHT).addChildTo(group4);
+        this.fgSprite[0].setPosition(SCREEN_CENTER_X - SCREEN_HEIGHT, SCREEN_CENTER_Y);
+        this.fgSprite[0].setAlpha(0.0);
+        this.fgSprite[1] = tm.display.Sprite("fg_sprite", SCREEN_WIDTH, SCREEN_HEIGHT).addChildTo(group4);
+        this.fgSprite[1].setPosition(SCREEN_CENTER_X, SCREEN_CENTER_Y);
+        this.fgSprite[1].setAlpha(0.0);
+        this.fgSprite[2] = tm.display.Sprite("bg_sprite", SCREEN_WIDTH, SCREEN_HEIGHT).addChildTo(group4);
+        this.fgSprite[2].setPosition(SCREEN_CENTER_X + SCREEN_HEIGHT, SCREEN_CENTER_Y);
+        this.fgSprite[2].setAlpha(0.0);
+
+
         clearArrays();
         player = new PlayerSprite().addChildTo(group4);
         for (let ii = 0; ii < 22; ii++) {
-            let rockL = RockSprite(ii, SCREEN_CENTER_X - 128 * 6, 128 * ii).addChildTo(group3);
+            let rockL = RockSprite(ii, SCREEN_CENTER_X - 128 * 9, 128 * ii).addChildTo(group3);
             rockLeftArray.push(rockL);
-            let rockR = RockSprite(ii, SCREEN_CENTER_X + 128 * 6, 128 * ii).addChildTo(group3);
+            let rockR = RockSprite(ii, SCREEN_CENTER_X + 128 * 9, 128 * ii).addChildTo(group3);
             rockRightArray.push(rockR);
         }
 
@@ -358,8 +375,8 @@ tm.define("GameScene", {
             this.tweetButton.onclick = function () {
                 var twitterURL = tm.social.Twitter.createURL({
                     type: "tweet",
-                    text: "TPTM 水深" + player.depth + "m に到達（スコア：" + player.score + "）",
-                    hashtags: ["ネムレス", "NEMLESSS"],
+                    text: "水深" + (player.depth / 100.0) + "m に到達（スコア：" + player.score + "）",
+                    hashtags: ["TPTM", "ネムレス", "NEMLESSS"],
                     url: "https://iwasaku.github.io/test13/TPTM/",
                 });
                 window.open(twitterURL);
@@ -381,15 +398,39 @@ tm.define("GameScene", {
                 this.gameOverLabel.setAlpha(0.0);
                 player.status = PL_STATUS.START;
             }
+
             rockScroll();
+            this.fgSprite[0].setPosition(player.x - SCREEN_WIDTH, SCREEN_CENTER_Y);
+            this.fgSprite[1].setPosition(player.x, SCREEN_CENTER_Y);
+            this.fgSprite[2].setPosition(player.x + SCREEN_WIDTH, SCREEN_CENTER_Y);
+
+            if (player.depth < 100000) {
+                this.bgSprite.setAlpha(1.0 - (player.depth / 100000.0));
+            } else if (player.depth < 200000) {
+                this.bgSprite.setAlpha(0.0);
+            }
+            if (player.depth < 80000) {
+                this.fgSprite[0].setAlpha(0.0);
+                this.fgSprite[1].setAlpha(0.0);
+                this.fgSprite[2].setAlpha(0.0);
+            } else if (player.depth < 180000) {
+                let tmpAlpha = (player.depth - 80000) / 100000.0;
+                this.fgSprite[0].setAlpha(tmpAlpha);
+                this.fgSprite[1].setAlpha(tmpAlpha);
+                this.fgSprite[2].setAlpha(tmpAlpha);
+            } else {
+                this.fgSprite[0].setAlpha(1.0);
+                this.fgSprite[1].setAlpha(1.0);
+                this.fgSprite[2].setAlpha(1.0);
+            }
         }
-        this.nowDepthLabel.text = player.depth + "m";
-        this.nowDepthLabel.text = dbgMsg;
-        this.nowScoreLabel.text = player.score;
-        this.nowScoreLabel.text = "[" + eAlpha + "," + eBeta + "," + eGamma + "]";
-        if (player.status.isStarted) {
-            this.nowScoreLabel.text = "[" + player.xPos + "," + player.xSpd + "," + player.xAcc + "," + eGamma + "]";
-        }
+        this.nowDepthLabel.text = (player.depth / 100.0) + "m";
+        //        this.nowDepthLabel.text = dbgMsg;
+        //        this.nowScoreLabel.text = player.score;
+        //        this.nowScoreLabel.text = "[" + eAlpha + "," + eBeta + "," + eGamma + "]";
+        //        if (player.status.isStarted) {
+        //            this.nowScoreLabel.text = "[" + player.xPos + "," + player.xSpd + "," + player.xAcc + "," + eGamma + "]";
+        //        }
 
         ++frame;
     }
@@ -439,16 +480,21 @@ tm.define("PlayerSprite", {
         this.depth = 0;
         this.score = 0;
         this.oxygen = 100 * FPS;    // 100秒分
+        this.xFlag = 1;
     },
 
     update: function (app) {
         if (this.status.isStarted) {
-            this.xAcc = eGamma / 90;
+            this.xAcc = eGamma / 90.0;
 
             let tmpBeta = eBeta;
             if (tmpBeta < 0) tmpBeta = 0;
             else if (tmpBeta > 90) tmpBeta = 90;
-            this.yAcc = (tmpBeta - 45) / 45;
+            this.yAcc = (tmpBeta - 45) / 45.0;
+
+            // for debug
+            //            this.xAcc = 1 * this.xFlag;
+            //            this.yAcc = 1;
 
             this.xSpd += this.xAcc;
             if (this.xSpd >= 64) this.xSpd = 64;
@@ -459,7 +505,23 @@ tm.define("PlayerSprite", {
             if (this.ySpd <= 0) this.ySpd = 0;
 
             this.xPos += this.xSpd;
+            this.depth += this.ySpd;
 
+            // for debug
+            //            if (this.xFlag === 1) {
+            //                if (this.xPos >= SCREEN_WIDTH) {
+            //                    this.xPos = SCREEN_WIDTH;
+            //                    this.xSpd = 0;
+            //                    this.xFlag = -1;
+            //                }
+            //            }
+            //            if (this.xFlag === -1) {
+            //                if (this.xPos <= 0) {
+            //                    this.xPos = 0;
+            //                    this.xSpd = 0;
+            //                    this.xFlag = 1;
+            //                }
+            //            }
             this.setPosition(this.xPos, this.yPos).setScale(1, 1);
         }
     },
@@ -507,17 +569,17 @@ tm.define("RockSprite", {
 
 
         // 自機との衝突判定
-        //        if (chkCollisionRectPlayer(this, player)) {
-        //            player.status = PL_STATUS.DEAD;
-        //        }
+        if (chkCollisionRectEne2Player(this, player)) {
+            player.status = PL_STATUS.DEAD;
+        }
     },
 });
 
 function rockScroll() {
-    var self = this;
+    let self = this;
 
-    var tmpRockLeft = null;
-    var tmpRockRight = null;
+    let tmpRockLeft = null;
+    let tmpRockRight = null;
     for (let ii = self.rockLeftArray.length - 1; ii >= 0; ii--) {
         if (self.rockLeftArray[ii].yPos <= -128) {
             tmpRockLeft = self.rockLeftArray[ii];
@@ -533,21 +595,98 @@ function rockScroll() {
         }
 
         // 最後尾のxPos、yPosを取得
-        var eolPos = getEndOfLinePos();
+        let eolPos = getEndOfLinePos();
 
         // XPosは範囲内でランダム
         // ±128固定か、通路の幅から求めるか
-        var tmpXpos = eolPos.x + ((myRandom(0, 20) - 10) / 10.0) * 128.0;
+        let tmpXpos = eolPos.x + ((myRandom(0, 20) - 10) / 10.0) * 128.0;
         if (tmpXpos <= 128 * 3) tmpXpos = 128 * 3;
         if (tmpXpos >= SCREEN_WIDTH - 128 * 3) tmpXpos = SCREEN_WIDTH - 128 * 3;
 
-        // Yposは128px下で決め打ちOK
+        // Yposは+128pxで決め打ちOK
         var tmpYpos = eolPos.y + 128;
         tmpRockLeft.yPos = tmpYpos;
         tmpRockRight.yPos = tmpYpos;
 
-        tmpRockLeft.xPos = tmpXpos - 128 * 6;
-        tmpRockRight.xPos = tmpXpos + 128 * 6;
+        // 通路の幅の広さ
+        // +6~+10
+        let tmpMin = 90;
+        let tmpMax = 100;
+        if (player.depth < 10000) {
+            tmpMin = 80;
+            tmpMax = 100;
+        } else if (player.depth < 20000) {
+            tmpMin = 70;
+            tmpMax = 100;
+        } else if (player.depth < 30000) {
+            tmpMin = 60;
+            tmpMax = 100;
+        } else if (player.depth < 40000) {
+            tmpMin = 80;
+            tmpMax = 90;
+        } else if (player.depth < 50000) {
+            tmpMin = 70;
+            tmpMax = 90;
+        } else if (player.depth < 60000) {
+            tmpMin = 60;
+            tmpMax = 90;
+        } else if (player.depth < 700000) {
+            tmpMin = 70;
+            tmpMax = 80;
+        } else if (player.depth < 800000) {
+            tmpMin = 60;
+            tmpMax = 80;
+        } else if (player.depth < 900000) {
+            tmpMin = 60;
+            tmpMax = 70;
+        } else if (player.depth < 1000000) {
+            tmpMin = 90;
+            tmpMax = 100;
+        } else if (player.depth < 1100000) {
+            tmpMin = 80;
+            tmpMax = 100;
+        } else if (player.depth < 1200000) {
+            tmpMin = 70;
+            tmpMax = 100;
+        } else if (player.depth < 1300000) {
+            tmpMin = 60;
+            tmpMax = 100;
+        } else if (player.depth < 1400000) {
+            tmpMin = 60;
+            tmpMax = 90;
+        } else if (player.depth < 1500000) {
+            tmpMin = 60;
+            tmpMax = 80;
+        } else if (player.depth < 1600000) {
+            tmpMin = 60;
+            tmpMax = 70;
+        } else if (player.depth < 1700000) {
+            tmpMin = 60;
+            tmpMax = 67;
+        } else if (player.depth < 1800000) {
+            tmpMin = 60;
+            tmpMax = 65;
+        } else if (player.depth < 1900000) {
+            tmpMin = 60;
+            tmpMax = 62;
+        } else if (player.depth < 2000000) {
+            tmpMin = 90;
+            tmpMax = 100;
+        } else if (player.depth < 2100000) {
+            tmpMin = 80;
+            tmpMax = 90;
+        } else if (player.depth < 2200000) {
+            tmpMin = 70;
+            tmpMax = 80;
+        } else if (player.depth < 2300000) {
+            tmpMin = 60;
+            tmpMax = 70;
+        } else {
+            tmpMin = 60;
+            tmpMax = 65;
+        }
+        tmpRockLeft.xPos = tmpXpos - 128 * (myRandom(tmpMin, tmpMax) / 10.0);
+        tmpRockRight.xPos = tmpXpos + 128 * (myRandom(tmpMin, tmpMax) / 10.0);
         if (tmpRockLeft.xPos < SCREEN_CENTER_X - 128 * 9) tmpRockLeft.xPos = SCREEN_CENTER_X - 128 * 9;
         if (tmpRockRight.xPos > SCREEN_CENTER_X + 128 * 9) tmpRockRight.xPos = SCREEN_CENTER_X + 128 * 9;
     }
@@ -645,8 +784,8 @@ function getQuaternion(alpha, beta, gamma) {
  */
 function chkCollisionRect(rect_a_x, rect_a_y, rect_a_w, rect_a_h, rect_b_x, rect_b_y, rect_b_w, rect_b_h) {
     // X軸、Y軸の距離
-    distance_x = abs(rect_a_x - rect_b_x);
-    distance_y = abs(rect_a_y - rect_b_y);
+    distance_x = Math.abs(rect_a_x - rect_b_x);
+    distance_y = Math.abs(rect_a_y - rect_b_y);
 
     // ２つの矩形のX軸、Y軸のサイズの和を算出する
     size_sum_x = (rect_a_w + rect_b_w) / 2.0;
@@ -661,6 +800,6 @@ function chkCollisionRect(rect_a_x, rect_a_y, rect_a_w, rect_a_h, rect_b_x, rect
 function chkCollisionRectOfs(rect_a_x, rect_a_y, rect_a_x_ofs, rect_a_y_ofs, rect_a_w, rect_a_h, rect_b_x, rect_b_y, rect_b_x_ofs, rect_b_y_ofs, rect_b_w, rect_b_h) {
     return chkCollisionRect(rect_a_x + rect_a_x_ofs, rect_a_y + rect_a_y_ofs, rect_a_w, rect_a_h, rect_b_x + rect_b_x_ofs, rect_b_y + rect_b_y_ofs, rect_b_w, rect_b_h);
 }
-function chkCollisionRectOfs(tmpRock, tmpPlayer) {
-    return chkCollisionRect(tmpRock.x, tmpRock.y, 1280, 128, tmpPlayer.x, tmpPlayer.y, 128, 128);
+function chkCollisionRectEne2Player(tmpEne, tmpPlayer) {
+    return chkCollisionRect(tmpEne.x, tmpEne.y, 1280, 128, tmpPlayer.x, tmpPlayer.y, 128, 128);
 }
