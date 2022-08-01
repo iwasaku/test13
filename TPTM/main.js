@@ -496,15 +496,17 @@ tm.define("PlayerSprite", {
             else if (tmpBeta > 90) tmpBeta = 90;
             this.yAcc = (tmpBeta - 45) / 45.0;
 
+            let depthRatio = 1 + ((player.depth / 100000.0) * 0.5);
+            if (depthRatio >= 1.5) depthRatio = 1.5;
             // for debug
             //            this.xAcc = 1 * this.xFlag;
             //            this.yAcc = 1;
 
-            this.xSpd += this.xAcc;
+            this.xSpd += this.xAcc * depthRatio;
             if (this.xSpd >= 64.0) this.xSpd = 64.0;
             if (this.xSpd <= -64.0) this.xSpd = -64.0;
 
-            this.ySpd += this.yAcc;
+            this.ySpd += this.yAcc * depthRatio;
             if (this.ySpd >= 64.0) this.ySpd = 64.0;
             if (this.ySpd <= 1.0) this.ySpd = 1.0;
 
@@ -630,71 +632,72 @@ function rockScroll() {
             tmpMin = 70;
             tmpMax = 100;
         } else if (player.depth < 30000) {
+            // ここらへんが限界？
             tmpMin = 60;
             tmpMax = 100;
         } else if (player.depth < 40000) {
-            tmpMin = 80;
-            tmpMax = 90;
+            tmpMin = 70;
+            tmpMax = 100;
         } else if (player.depth < 50000) {
-            tmpMin = 70;
-            tmpMax = 90;
+            tmpMin = 80;
+            tmpMax = 100;
         } else if (player.depth < 60000) {
-            tmpMin = 60;
-            tmpMax = 90;
-        } else if (player.depth < 700000) {
-            tmpMin = 70;
-            tmpMax = 80;
-        } else if (player.depth < 800000) {
-            tmpMin = 60;
-            tmpMax = 80;
-        } else if (player.depth < 900000) {
-            tmpMin = 60;
-            tmpMax = 70;
-        } else if (player.depth < 1000000) {
             tmpMin = 90;
             tmpMax = 100;
-        } else if (player.depth < 1100000) {
+        } else if (player.depth < 70000) {
             tmpMin = 80;
             tmpMax = 100;
-        } else if (player.depth < 1200000) {
+        } else if (player.depth < 80000) {
             tmpMin = 70;
             tmpMax = 100;
-        } else if (player.depth < 1300000) {
+        } else if (player.depth < 90000) {
             tmpMin = 60;
             tmpMax = 100;
-        } else if (player.depth < 1400000) {
+        } else if (player.depth < 100000) {
             tmpMin = 60;
             tmpMax = 90;
-        } else if (player.depth < 1500000) {
+        } else if (player.depth < 110000) {
             tmpMin = 60;
-            tmpMax = 80;
-        } else if (player.depth < 1600000) {
-            tmpMin = 60;
-            tmpMax = 70;
-        } else if (player.depth < 1700000) {
-            tmpMin = 60;
-            tmpMax = 67;
-        } else if (player.depth < 1800000) {
-            tmpMin = 60;
-            tmpMax = 65;
-        } else if (player.depth < 1900000) {
-            tmpMin = 60;
-            tmpMax = 62;
-        } else if (player.depth < 2000000) {
+            tmpMax = 100;
+        } else if (player.depth < 120000) {
+            tmpMin = 70;
+            tmpMax = 100;
+        } else if (player.depth < 130000) {
+            tmpMin = 80;
+            tmpMax = 100;
+        } else if (player.depth < 140000) {
             tmpMin = 90;
             tmpMax = 100;
-        } else if (player.depth < 2100000) {
+        } else if (player.depth < 150000) {
             tmpMin = 80;
-            tmpMax = 90;
-        } else if (player.depth < 2200000) {
+            tmpMax = 100;
+        } else if (player.depth < 160000) {
             tmpMin = 70;
-            tmpMax = 80;
-        } else if (player.depth < 2300000) {
+            tmpMax = 100;
+        } else if (player.depth < 170000) {
             tmpMin = 60;
-            tmpMax = 70;
+            tmpMax = 100;
+        } else if (player.depth < 180000) {
+            tmpMin = 60;
+            tmpMax = 90;
+        } else if (player.depth < 190000) {
+            tmpMin = 60;
+            tmpMax = 80;
+        } else if (player.depth < 200000) {
+            tmpMin = 60;
+            tmpMax = 90;
+        } else if (player.depth < 210000) {
+            tmpMin = 60;
+            tmpMax = 100;
+        } else if (player.depth < 220000) {
+            tmpMin = 60;
+            tmpMax = 90;
+        } else if (player.depth < 230000) {
+            tmpMin = 60;
+            tmpMax = 80;
         } else {
             tmpMin = 60;
-            tmpMax = 65;
+            tmpMax = 70;
         }
         tmpRockLeft.xPos = tmpXpos - 128 * (myRandom(tmpMin, tmpMax) / 10.0);
         tmpRockRight.xPos = tmpXpos + 128 * (myRandom(tmpMin, tmpMax) / 10.0);
