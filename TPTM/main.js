@@ -1,4 +1,5 @@
 //console.log = function () { };  // ログを出す時にはコメントアウトする
+const debug_flag = false;
 
 const SCREEN_WIDTH = 1280;             // スクリーン幅
 const SCREEN_HEIGHT = 2436;                 // スクリーン高さ
@@ -11,6 +12,10 @@ const FONT_FAMILY = "'misaki_gothic','Meiryo',sans-serif";
 const ASSETS = {
     "nmls": "./resource/new_nmls_128.png",
     "rock": "./resource/planet_128.png",
+
+    "chinu": "./resource/chinu_128.png",
+    "rabuka": "./resource/chinu_128.png",
+
     "bg_sprite": "./resource/bg.png",
     "fg_sprite": "./resource/fg.png",
 };
@@ -53,6 +58,25 @@ const PL_STATUS = defineEnum({
     },
 });
 
+// 定義
+const FISH_DEF = defineEnum({
+    CHINU: {
+        spr: "chinu",
+        w: 128,
+        h: 128,
+        colw: 0.9,
+        colh: 0.7,
+        spd: 16,
+    },
+    RABUKA: {
+        spr: "rabuka",
+        w: 128,
+        h: 128,
+        colw: 0.9,
+        colh: 0.9,
+        spd: 32,
+    },
+});
 
 //
 class CharaStatus {
@@ -425,13 +449,9 @@ tm.define("GameScene", {
                 this.fgSprite[2].setAlpha(1.0);
             }
         }
+
         this.nowDepthLabel.text = (player.depth / 100.0).toFixed(2) + "m";
-        //        this.nowDepthLabel.text = dbgMsg;
         this.nowScoreLabel.text = player.score;
-        //        this.nowScoreLabel.text = "[" + eAlpha + "," + eBeta + "," + eGamma + "]";
-        //if (player.status.isStarted) {
-        //    this.nowScoreLabel.text = "[" + player.xPos + "," + player.xSpd + "," + player.xAcc + "," + eGamma + "]";
-        //}
 
         ++frame;
     }
@@ -483,6 +503,7 @@ tm.define("PlayerSprite", {
         this.oxygen = 100 * FPS;    // 100秒分
         this.xFlag = 1; // for debug
         this.oldDepth = 0;
+        this.fishDepth = 0;
         this.ySpdCounter = 0;
         this.ySpdTotal = 0;
     },
@@ -499,8 +520,10 @@ tm.define("PlayerSprite", {
             let depthRatio = 1 + ((player.depth / 100000.0) * 0.5);
             if (depthRatio >= 1.5) depthRatio = 1.5;
             // for debug
-            //            this.xAcc = 1 * this.xFlag;
-            //            this.yAcc = 1;
+            if (debug_flag) {
+                this.xAcc = 1 * this.xFlag;
+                this.yAcc = 0.1;
+            }
 
             this.xSpd += this.xAcc * depthRatio;
             if (this.xSpd >= 64.0) this.xSpd = 64.0;
@@ -516,27 +539,91 @@ tm.define("PlayerSprite", {
             this.ySpdCounter++;
             this.ySpdTotal += this.ySpd;
             if (this.depth >= this.oldDepth + 100) {
+                // 1mごとにスコア加算
                 this.score += Math.round(this.ySpdTotal / this.ySpdCounter);
                 this.oldDepth = this.depth;
                 this.ySpdCounter = 0;
                 this.ySpdTotal = 0;
             }
+            if (this.depth >= this.fishDepth + 1000) {
+                // 10mごとに魚が発生
+                new FishSprite(FISH_DEF.CHINU).addChildTo(group2);
+                this.fishDepth = this.depth;
+            }
             // for debug
-            //            if (this.xFlag === 1) {
-            //                if (this.xPos >= SCREEN_WIDTH) {
-            //                    this.xPos = SCREEN_WIDTH;
-            //                    this.xSpd = 0;
-            //                    this.xFlag = -1;
-            //                }
-            //            }
-            //            if (this.xFlag === -1) {
-            //                if (this.xPos <= 0) {
-            //                    this.xPos = 0;
-            //                    this.xSpd = 0;
-            //                    this.xFlag = 1;
-            //                }
-            //            }
+            if (debug_flag) {
+                if (this.xFlag === 1) {
+                    if (this.xPos >= SCREEN_WIDTH) {
+                        this.xPos = SCREEN_WIDTH;
+                        this.xSpd = 0;
+                        this.xFlag = -1;
+                    }
+                }
+                if (this.xFlag === -1) {
+                    if (this.xPos <= 0) {
+                        this.xPos = 0;
+                        this.xSpd = 0;
+                        this.xFlag = 1;
+                    }
+                }
+            }
             this.setPosition(this.xPos, this.yPos).setScale(1, 1);
+        }
+    },
+});
+
+/*
+ * Fish
+ */
+tm.define("FishSprite", {
+    superClass: "tm.app.Sprite",
+
+    init: function (fishDef) {
+        this.spriteName = fishDef.spr;
+        this.xSize = fishDef.w;
+        this.ySize = fishDef.h;
+        this.xCol = fishDef.colw;
+        this.yCol = fishDef.colh;
+
+        this.superInit(this.spriteName, this.xSize, this.ySize);
+        this.direct = '';
+        this.setInteractive(false);
+        this.setBoundingType("rect");
+        this.xSpdFlag = (myRandom(0, 1) === 0) ? -1 : 1;
+        if (this.xSpdFlag === 1) {
+            this.xPos = 0 - this.xSize;
+        } else {
+            this.xPos = SCREEN_WIDTH + this.xSize;
+        }
+        this.yPos = SCREEN_HEIGHT + this.ySize * (myRandom(2, 5));
+        this.setPosition(this.xPos, this.yPos).setScale(-this.xSpdFlag, 1);
+        this.xSpd = fishDef.spd * (myRandom(5, 20) / 10.0);
+    },
+
+    update: function (app) {
+        if (player.status.isDead) return;
+        this.xPos += this.xSpd * this.xSpdFlag;
+        this.yPos -= player.ySpd;
+        this.setPosition(this.xPos, this.yPos).setScale(-this.xSpdFlag, 1);
+
+        if (this.xSpdFlag >= 0) {
+            if (this.xPos >= SCREEN_WIDTH + this.xSize) {
+                this.xSpdFlag = -this.xSpdFlag;
+            }
+        } else {
+            if (this.xPos < 0 - this.xSize) {
+                this.xSpdFlag = -this.xSpdFlag;
+            }
+        }
+        // 画面上端から出た?
+        if (this.yPos < -128) {
+            this.remove();
+            return;
+        }
+
+        // 自機との衝突判定
+        if (chkCollisionRectEne2Player(this, player)) {
+            player.status = PL_STATUS.DEAD;
         }
     },
 });
@@ -559,31 +646,23 @@ tm.define("RockSprite", {
         this.setPosition(this.xPos, this.yPos).setScale(1, 1);
         this.ySpd = 0;
         this.ySpdFlag = 1;
+        this.xSize = 1280;
+        this.ySize = 128;
+        this.xCol = 0.9;
+        this.yCol = 0.9;
     },
 
     update: function (app) {
-
-        //        this.position.add(this.vec);
-        //        if (this.ySpdFlag > 0) {
-        //            this.ySpd += 0.1;
-        //            if (this.ySpd >= 64) {
-        //                this.ySpd = 64;
-        //                this.ySpdFlag = -1;
-        //            }
-        //        } else {
-        //            this.ySpd -= 0.1;
-        //            if (this.ySpd <= 0) {
-        //                this.ySpd = 0;
-        //                this.ySpdFlag = 1;
-        //            }
-        //        }
         this.yPos -= player.ySpd;
         this.setPosition(this.xPos, this.yPos);
 
         if (player.status.isDead) return;
         // 自機との衝突判定
-        if (chkCollisionRectEne2Player(this, player)) {
-            player.status = PL_STATUS.DEAD;
+        if (!debug_flag) {
+            if (chkCollisionRectEne2Player(this, player)) {
+                player.status = PL_STATUS.DEAD;
+
+            }
         }
     },
 });
@@ -629,11 +708,10 @@ function rockScroll() {
             tmpMin = 80;
             tmpMax = 100;
         } else if (player.depth < 20000) {
-            tmpMin = 70;
+            tmpMin = 90;
             tmpMax = 100;
         } else if (player.depth < 30000) {
-            // ここらへんが限界？
-            tmpMin = 60;
+            tmpMin = 80;
             tmpMax = 100;
         } else if (player.depth < 40000) {
             tmpMin = 70;
@@ -654,45 +732,48 @@ function rockScroll() {
             tmpMin = 60;
             tmpMax = 100;
         } else if (player.depth < 100000) {
-            tmpMin = 60;
-            tmpMax = 90;
+            tmpMin = 70;
+            tmpMax = 100;
         } else if (player.depth < 110000) {
             tmpMin = 60;
             tmpMax = 100;
         } else if (player.depth < 120000) {
-            tmpMin = 70;
+            tmpMin = 80;
             tmpMax = 100;
         } else if (player.depth < 130000) {
-            tmpMin = 80;
+            tmpMin = 60;
             tmpMax = 100;
         } else if (player.depth < 140000) {
-            tmpMin = 90;
-            tmpMax = 100;
-        } else if (player.depth < 150000) {
             tmpMin = 80;
+            tmpMax = 90;
+        } else if (player.depth < 150000) {
+            tmpMin = 60;
             tmpMax = 100;
         } else if (player.depth < 160000) {
             tmpMin = 70;
-            tmpMax = 100;
+            tmpMax = 90;
         } else if (player.depth < 170000) {
             tmpMin = 60;
             tmpMax = 100;
         } else if (player.depth < 180000) {
-            tmpMin = 60;
+            tmpMin = 70;
             tmpMax = 90;
         } else if (player.depth < 190000) {
             tmpMin = 60;
-            tmpMax = 80;
+            tmpMax = 100;
         } else if (player.depth < 200000) {
-            tmpMin = 60;
+            tmpMin = 80;
             tmpMax = 90;
         } else if (player.depth < 210000) {
             tmpMin = 60;
             tmpMax = 100;
         } else if (player.depth < 220000) {
-            tmpMin = 60;
+            tmpMin = 70;
             tmpMax = 90;
         } else if (player.depth < 230000) {
+            tmpMin = 60;
+            tmpMax = 90;
+        } else if (player.depth < 240000) {
             tmpMin = 60;
             tmpMax = 80;
         } else {
@@ -815,5 +896,5 @@ function chkCollisionRectOfs(rect_a_x, rect_a_y, rect_a_x_ofs, rect_a_y_ofs, rec
     return chkCollisionRect(rect_a_x + rect_a_x_ofs, rect_a_y + rect_a_y_ofs, rect_a_w, rect_a_h, rect_b_x + rect_b_x_ofs, rect_b_y + rect_b_y_ofs, rect_b_w, rect_b_h);
 }
 function chkCollisionRectEne2Player(tmpEne, tmpPlayer) {
-    return chkCollisionRect(tmpEne.x, tmpEne.y, 1280 * 0.9, 128 * 0.9, tmpPlayer.x, tmpPlayer.y, 128 * 0.9, 128 * 0.9);
+    return chkCollisionRect(tmpEne.x, tmpEne.y, tmpEne.xSize * tmpEne.xCol, tmpEne.ySize * tmpEne.yCol, tmpPlayer.x, tmpPlayer.y, 128 * 0.9, 128 * 0.9);
 }
