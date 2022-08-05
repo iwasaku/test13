@@ -17,7 +17,8 @@ const ASSETS = {
     "rabuka": "./resource/chinu_128.png",
 
     "bg_sprite": "./resource/bg.png",
-    "fg_sprite": "./resource/fg.png",
+    "fg0_sprite": "./resource/fg.png",
+    "fg1_sprite": "./resource/fg_blk.png",
 };
 const fallSE = new Howl({
     src: 'https://iwasaku.github.io/test7/NEMLESSSTER/resource/fall.mp3?20200708'
@@ -275,13 +276,13 @@ tm.define("GameScene", {
         this.bgSprite.setPosition(SCREEN_CENTER_X, SCREEN_CENTER_Y);
         this.bgSprite.setAlpha(1.0);
         this.fgSprite = [null, null, null];
-        this.fgSprite[0] = tm.display.Sprite("bg_sprite", SCREEN_WIDTH, SCREEN_HEIGHT).addChildTo(group4);
+        this.fgSprite[0] = tm.display.Sprite("fg1_sprite", SCREEN_WIDTH, SCREEN_HEIGHT).addChildTo(group4);
         this.fgSprite[0].setPosition(SCREEN_CENTER_X - SCREEN_HEIGHT, SCREEN_CENTER_Y);
         this.fgSprite[0].setAlpha(0.0);
-        this.fgSprite[1] = tm.display.Sprite("fg_sprite", SCREEN_WIDTH, SCREEN_HEIGHT).addChildTo(group4);
+        this.fgSprite[1] = tm.display.Sprite("fg0_sprite", SCREEN_WIDTH, SCREEN_HEIGHT).addChildTo(group4);
         this.fgSprite[1].setPosition(SCREEN_CENTER_X, SCREEN_CENTER_Y);
         this.fgSprite[1].setAlpha(0.0);
-        this.fgSprite[2] = tm.display.Sprite("bg_sprite", SCREEN_WIDTH, SCREEN_HEIGHT).addChildTo(group4);
+        this.fgSprite[2] = tm.display.Sprite("fg1_sprite", SCREEN_WIDTH, SCREEN_HEIGHT).addChildTo(group4);
         this.fgSprite[2].setPosition(SCREEN_CENTER_X + SCREEN_HEIGHT, SCREEN_CENTER_Y);
         this.fgSprite[2].setAlpha(0.0);
 
@@ -589,22 +590,26 @@ tm.define("FishSprite", {
         this.direct = '';
         this.setInteractive(false);
         this.setBoundingType("rect");
-        this.xSpdFlag = (myRandom(0, 1) === 0) ? -1 : 1;
+        this.xSpdFlag = (myRandomMode(0, 1, true) === 0) ? -1 : 1;
         if (this.xSpdFlag === 1) {
             this.xPos = 0 - this.xSize;
         } else {
             this.xPos = SCREEN_WIDTH + this.xSize;
         }
-        this.yPos = SCREEN_HEIGHT + this.ySize * (myRandom(2, 5));
+        this.yPos = SCREEN_HEIGHT + this.ySize * (myRandomMode(2, 5, true));
+        this.yOfs = 0;
+        this.yOfsMax = myRandomMode(10, 400, true) / 10.0;
         this.setPosition(this.xPos, this.yPos).setScale(-this.xSpdFlag, 1);
-        this.xSpd = fishDef.spd * (myRandom(5, 20) / 10.0);
+        this.xSpd = fishDef.spd * (myRandomMode(5, 20, true) / 10.0);
+        this.counter = myRandomMode(0, 90, true);
     },
 
     update: function (app) {
         if (player.status.isDead) return;
         this.xPos += this.xSpd * this.xSpdFlag;
         this.yPos -= player.ySpd;
-        this.setPosition(this.xPos, this.yPos).setScale(-this.xSpdFlag, 1);
+        this.yOfs = Math.sin(this.counter * 0.25) * this.yOfsMax;
+        this.setPosition(this.xPos, this.yPos + this.yOfs).setScale(-this.xSpdFlag, 1);
 
         if (this.xSpdFlag >= 0) {
             if (this.xPos >= SCREEN_WIDTH + this.xSize) {
@@ -620,7 +625,7 @@ tm.define("FishSprite", {
             this.remove();
             return;
         }
-
+        this.counter++;
         // 自機との衝突判定
         if (chkCollisionRectEne2Player(this, player)) {
             player.status = PL_STATUS.DEAD;
@@ -658,11 +663,9 @@ tm.define("RockSprite", {
 
         if (player.status.isDead) return;
         // 自機との衝突判定
-        if (!debug_flag) {
-            if (chkCollisionRectEne2Player(this, player)) {
-                player.status = PL_STATUS.DEAD;
+        if (chkCollisionRectEne2Player(this, player)) {
+            player.status = PL_STATUS.DEAD;
 
-            }
         }
     },
 });
@@ -830,7 +833,10 @@ function clearArrays() {
 // ※start < end
 // ※startとendを含む
 function myRandom(start, end) {
-    if (randomMode) {
+    return myRandomMode(start, end, randomMode);
+}
+function myRandomMode(start, end, mode) {
+    if (mode) {
         var max = (end - start) + 1;
         return Math.floor(Math.random() * Math.floor(max)) + start;
     } else {
@@ -878,6 +884,7 @@ function getQuaternion(alpha, beta, gamma) {
  * @returns 
  */
 function chkCollisionRect(rect_a_x, rect_a_y, rect_a_w, rect_a_h, rect_b_x, rect_b_y, rect_b_w, rect_b_h) {
+    if (debug_flag) return false;
     // X軸、Y軸の距離
     distance_x = Math.abs(rect_a_x - rect_b_x);
     distance_y = Math.abs(rect_a_y - rect_b_y);
