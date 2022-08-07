@@ -65,8 +65,8 @@ const FISH_DEF = defineEnum({
         spr: "chinu",
         w: 128,
         h: 128,
-        colw: 0.9,
-        colh: 0.7,
+        colw: 0.5,
+        colh: 0.5,
         spd: 8,
         sinMax: 400,
     },
@@ -580,9 +580,9 @@ tm.define("PlayerSprite", {
                 }
             } else {
                 if (this.xSpd <= 0) {
-                    this.xFlag = 1;
-                } else {
                     this.xFlag = -1;
+                } else {
+                    this.xFlag = 1;
                 }
             }
             this.setPosition(this.xPos, this.yPos).setScale(-this.xFlag, 1);
