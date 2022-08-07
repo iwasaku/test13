@@ -14,7 +14,7 @@ const ASSETS = {
     "rock": "./resource/planet_128.png",
 
     "chinu": "./resource/chinu_128.png",
-    "rabuka": "./resource/chinu_128.png",
+    "rabuka": "./resource/rabuka_128.png",
 
     "bg_sprite": "./resource/bg.png",
     "fg0_sprite": "./resource/fg.png",
@@ -67,15 +67,17 @@ const FISH_DEF = defineEnum({
         h: 128,
         colw: 0.9,
         colh: 0.7,
-        spd: 16,
+        spd: 8,
+        sinMax: 400,
     },
     RABUKA: {
         spr: "rabuka",
-        w: 128,
+        w: 594,
         h: 128,
         colw: 0.9,
-        colh: 0.9,
-        spd: 32,
+        colh: 0.5,
+        spd: 6,
+        sinMax: 0,
     },
 });
 
@@ -97,6 +99,8 @@ let group3 = null;  // rock
 let group4 = null;  // fg   ライトステンシル
 let group5 = null;  // player
 let group6 = null;  // status
+let bgSprite = null;
+let fgSprite = [null, null, null];
 
 const DIR_KEY_DEF = defineEnum({
     NONE: {
@@ -132,7 +136,7 @@ var rockRightArray = [];
 let eAlpha = 0;
 let eBeta = 0;
 let eGamma = 0;
-var randomSeed = 3557;
+var randomSeed = [3557, 3557];
 var randomMode = Boolean(0);
 let dbgMsg = "";
 
@@ -262,8 +266,10 @@ tm.define("GameScene", {
 
     init: function () {
         this.superInit();
-        if (!randomMode) randomSeed = 3557;
-
+        if (!randomMode) {
+            randomSeed[0] = 3557;
+            randomSeed[1] = 3557;
+        }
         group0 = tm.display.CanvasElement().addChildTo(this);   // BG0（黒色）
         group1 = tm.display.CanvasElement().addChildTo(this);   // BG1（水色）
         group2 = tm.display.CanvasElement().addChildTo(this);   // 敵、アイテム
@@ -272,19 +278,19 @@ tm.define("GameScene", {
         group5 = tm.display.CanvasElement().addChildTo(this);   // プレイヤー
         group6 = tm.display.CanvasElement().addChildTo(this);   // ステータス
 
-        this.bgSprite = tm.display.Sprite("bg_sprite", SCREEN_WIDTH, SCREEN_HEIGHT).addChildTo(group1);
-        this.bgSprite.setPosition(SCREEN_CENTER_X, SCREEN_CENTER_Y);
-        this.bgSprite.setAlpha(1.0);
-        this.fgSprite = [null, null, null];
-        this.fgSprite[0] = tm.display.Sprite("fg1_sprite", SCREEN_WIDTH, SCREEN_HEIGHT).addChildTo(group4);
-        this.fgSprite[0].setPosition(SCREEN_CENTER_X - SCREEN_HEIGHT, SCREEN_CENTER_Y);
-        this.fgSprite[0].setAlpha(0.0);
-        this.fgSprite[1] = tm.display.Sprite("fg0_sprite", SCREEN_WIDTH, SCREEN_HEIGHT).addChildTo(group4);
-        this.fgSprite[1].setPosition(SCREEN_CENTER_X, SCREEN_CENTER_Y);
-        this.fgSprite[1].setAlpha(0.0);
-        this.fgSprite[2] = tm.display.Sprite("fg1_sprite", SCREEN_WIDTH, SCREEN_HEIGHT).addChildTo(group4);
-        this.fgSprite[2].setPosition(SCREEN_CENTER_X + SCREEN_HEIGHT, SCREEN_CENTER_Y);
-        this.fgSprite[2].setAlpha(0.0);
+        bgSprite = tm.display.Sprite("bg_sprite", SCREEN_WIDTH, SCREEN_HEIGHT).addChildTo(group1);
+        bgSprite.setPosition(SCREEN_CENTER_X, SCREEN_CENTER_Y);
+        bgSprite.setAlpha(1.0);
+        fgSprite = [null, null, null];
+        fgSprite[0] = tm.display.Sprite("fg1_sprite", SCREEN_WIDTH, SCREEN_HEIGHT).addChildTo(group4);
+        fgSprite[0].setPosition(SCREEN_CENTER_X - SCREEN_HEIGHT, SCREEN_CENTER_Y);
+        fgSprite[0].setAlpha(0.0);
+        fgSprite[1] = tm.display.Sprite("fg0_sprite", SCREEN_WIDTH, SCREEN_HEIGHT).addChildTo(group4);
+        fgSprite[1].setPosition(SCREEN_CENTER_X, SCREEN_CENTER_Y);
+        fgSprite[1].setAlpha(0.0);
+        fgSprite[2] = tm.display.Sprite("fg1_sprite", SCREEN_WIDTH, SCREEN_HEIGHT).addChildTo(group4);
+        fgSprite[2].setPosition(SCREEN_CENTER_X + SCREEN_HEIGHT, SCREEN_CENTER_Y);
+        fgSprite[2].setAlpha(0.0);
 
 
         clearArrays();
@@ -426,29 +432,6 @@ tm.define("GameScene", {
             }
 
             rockScroll();
-            this.fgSprite[0].setPosition(player.x - SCREEN_WIDTH, SCREEN_CENTER_Y);
-            this.fgSprite[1].setPosition(player.x, SCREEN_CENTER_Y);
-            this.fgSprite[2].setPosition(player.x + SCREEN_WIDTH, SCREEN_CENTER_Y);
-
-            if (player.depth < 100000) {
-                this.bgSprite.setAlpha(1.0 - (player.depth / 100000.0));
-            } else if (player.depth < 200000) {
-                this.bgSprite.setAlpha(0.0);
-            }
-            if (player.depth < 80000) {
-                this.fgSprite[0].setAlpha(0.0);
-                this.fgSprite[1].setAlpha(0.0);
-                this.fgSprite[2].setAlpha(0.0);
-            } else if (player.depth < 180000) {
-                let tmpAlpha = (player.depth - 80000) / 100000.0;
-                this.fgSprite[0].setAlpha(tmpAlpha);
-                this.fgSprite[1].setAlpha(tmpAlpha);
-                this.fgSprite[2].setAlpha(tmpAlpha);
-            } else {
-                this.fgSprite[0].setAlpha(1.0);
-                this.fgSprite[1].setAlpha(1.0);
-                this.fgSprite[2].setAlpha(1.0);
-            }
         }
 
         this.nowDepthLabel.text = (player.depth / 100.0).toFixed(2) + "m";
@@ -486,7 +469,7 @@ tm.define("PlayerSprite", {
         this.superInit(ss, 128, 128);
         this.direct = '';
         this.xPos = SCREEN_CENTER_X;
-        this.yPos = SCREEN_CENTER_Y;    // とりあえず
+        this.yPos = SCREEN_CENTER_Y - 336;    // とりあえず
         this.xAcc = 0.0;
         this.yAcc = 0.0;
         this.xSpd = -1;
@@ -533,6 +516,9 @@ tm.define("PlayerSprite", {
             this.ySpd += this.yAcc * depthRatio;
             if (this.ySpd >= 64.0) this.ySpd = 64.0;
             if (this.ySpd <= 1.0) this.ySpd = 1.0;
+            if (debug_flag) {
+                if (this.ySpd >= 32.0) this.ySpd = 32.0;
+            }
 
             this.xPos += this.xSpd;
             this.depth += this.ySpd;
@@ -546,9 +532,34 @@ tm.define("PlayerSprite", {
                 this.ySpdCounter = 0;
                 this.ySpdTotal = 0;
             }
-            if (this.depth >= this.fishDepth + 1000) {
-                // 10mごとに魚が発生
-                new FishSprite(FISH_DEF.CHINU).addChildTo(group2);
+            if (this.depth >= this.fishDepth + 2000) {
+                // 20mごとに魚が発生
+                if (this.depth < 10000) {
+                    // 100mまでは何も出現しない
+                } else if (this.depth < 50000) {
+                    // 1/8の確率でCHINUが出現
+                    // 7/8の確率で出現しない
+                    if (myRandom(1, 1, 8) === 1) {
+                        new FishSprite(FISH_DEF.CHINU).addChildTo(group2);
+                    }
+                } else if (this.depth < 80000) {
+                    // 1/4の確率で魚が出現
+                    if (myRandom(1, 1, 4) === 1) {
+                        // 1/8の確率でRABUKAが出現
+                        // 7/8の確率でCHINUが出現
+                        if (myRandom(1, 1, 8) === 1) {
+                            new FishSprite(FISH_DEF.RABUKA).addChildTo(group2);
+                        } else {
+                            new FishSprite(FISH_DEF.CHINU).addChildTo(group2);
+                        }
+                    }
+                } else {
+                    // 1/2の確率でRABUKAが出現
+                    // 1/2の確率で何も出現しない
+                    if (myRandom(1, 1, 2) === 1) {
+                        new FishSprite(FISH_DEF.RABUKA).addChildTo(group2);
+                    }
+                }
                 this.fishDepth = this.depth;
             }
             // for debug
@@ -567,8 +578,38 @@ tm.define("PlayerSprite", {
                         this.xFlag = 1;
                     }
                 }
+            } else {
+                if (this.xSpd <= 0) {
+                    this.xFlag = 1;
+                } else {
+                    this.xFlag = -1;
+                }
             }
-            this.setPosition(this.xPos, this.yPos).setScale(1, 1);
+            this.setPosition(this.xPos, this.yPos).setScale(-this.xFlag, 1);
+
+            // playerの情報と１フレずれると見た目もずれてしまうのでココに処理を書く
+            fgSprite[0].setPosition(player.x - SCREEN_WIDTH, SCREEN_CENTER_Y);
+            fgSprite[1].setPosition(player.x, SCREEN_CENTER_Y);
+            fgSprite[2].setPosition(player.x + SCREEN_WIDTH, SCREEN_CENTER_Y);
+            if (player.depth < 100000) {
+                bgSprite.setAlpha(1.0 - (player.depth / 100000.0));
+            } else if (player.depth < 200000) {
+                bgSprite.setAlpha(0.0);
+            }
+            if (player.depth < 80000) {
+                fgSprite[0].setAlpha(0.0);
+                fgSprite[1].setAlpha(0.0);
+                fgSprite[2].setAlpha(0.0);
+            } else if (player.depth < 180000) {
+                let tmpAlpha = ((player.depth - 80000) * 0.9) / 100000.0;
+                fgSprite[0].setAlpha(tmpAlpha);
+                fgSprite[1].setAlpha(tmpAlpha);
+                fgSprite[2].setAlpha(tmpAlpha);
+            } else {
+                fgSprite[0].setAlpha(0.9);
+                fgSprite[1].setAlpha(0.9);
+                fgSprite[2].setAlpha(0.9);
+            }
         }
     },
 });
@@ -590,18 +631,22 @@ tm.define("FishSprite", {
         this.direct = '';
         this.setInteractive(false);
         this.setBoundingType("rect");
-        this.xSpdFlag = (myRandomMode(0, 1, true) === 0) ? -1 : 1;
+        this.xSpdFlag = (myRandom(1, 0, 1) === 0) ? -1 : 1;
         if (this.xSpdFlag === 1) {
             this.xPos = 0 - this.xSize;
         } else {
             this.xPos = SCREEN_WIDTH + this.xSize;
         }
-        this.yPos = SCREEN_HEIGHT + this.ySize * (myRandomMode(2, 5, true));
+        this.yPos = SCREEN_HEIGHT + this.ySize * (myRandom(1, 2, 5));
         this.yOfs = 0;
-        this.yOfsMax = myRandomMode(10, 400, true) / 10.0;
+        if (fishDef.sinMax === 0) {
+            this.yOfsMax = 0;
+        } else {
+            this.yOfsMax = myRandom(1, 10, fishDef.sinMax) / 10.0;
+        }
         this.setPosition(this.xPos, this.yPos).setScale(-this.xSpdFlag, 1);
-        this.xSpd = fishDef.spd * (myRandomMode(5, 20, true) / 10.0);
-        this.counter = myRandomMode(0, 90, true);
+        this.xSpd = fishDef.spd * (myRandom(1, 5, 20) / 10.0);
+        this.counter = myRandom(1, 0, 90);
     },
 
     update: function (app) {
@@ -694,7 +739,7 @@ function rockScroll() {
 
         // XPosは範囲内でランダム
         // ±128固定か、通路の幅から求めるか
-        let tmpXpos = eolPos.x + ((myRandom(0, 20) - 10) / 10.0) * 128.0;
+        let tmpXpos = eolPos.x + ((myRandom(0, 0, 20) - 10) / 10.0) * 128.0;
         if (tmpXpos <= 128 * 3) tmpXpos = 128 * 3;
         if (tmpXpos >= SCREEN_WIDTH - 128 * 3) tmpXpos = SCREEN_WIDTH - 128 * 3;
 
@@ -783,8 +828,8 @@ function rockScroll() {
             tmpMin = 60;
             tmpMax = 70;
         }
-        tmpRockLeft.xPos = tmpXpos - 128 * (myRandom(tmpMin, tmpMax) / 10.0);
-        tmpRockRight.xPos = tmpXpos + 128 * (myRandom(tmpMin, tmpMax) / 10.0);
+        tmpRockLeft.xPos = tmpXpos - 128 * (myRandom(0, tmpMin, tmpMax) / 10.0);
+        tmpRockRight.xPos = tmpXpos + 128 * (myRandom(0, tmpMin, tmpMax) / 10.0);
         if (tmpRockLeft.xPos < SCREEN_CENTER_X - 128 * 9) tmpRockLeft.xPos = SCREEN_CENTER_X - 128 * 9;
         if (tmpRockRight.xPos > SCREEN_CENTER_X + 128 * 9) tmpRockRight.xPos = SCREEN_CENTER_X + 128 * 9;
     }
@@ -832,21 +877,18 @@ function clearArrays() {
 // 指定の範囲で乱数を求める
 // ※start < end
 // ※startとendを含む
-function myRandom(start, end) {
-    return myRandomMode(start, end, randomMode);
-}
-function myRandomMode(start, end, mode) {
-    if (mode) {
+function myRandom(idx, start, end) {
+    if (randomMode) {
         var max = (end - start) + 1;
         return Math.floor(Math.random() * Math.floor(max)) + start;
     } else {
         var mod = (end - start) + 1;
-        randomSeed = (randomSeed * 5) + 1;
+        randomSeed[idx] = (randomSeed[idx] * 5) + 1;
         for (; ;) {
-            if (randomSeed < 2147483647) break;
-            randomSeed -= 2147483647;
+            if (randomSeed[idx] < 2147483647) break;
+            randomSeed[idx] -= 2147483647;
         }
-        return (randomSeed % mod) + start;
+        return (randomSeed[idx] % mod) + start;
     }
 }
 
