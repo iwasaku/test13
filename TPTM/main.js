@@ -303,10 +303,9 @@ tm.define("GameScene", {
         clearArrays();
         player = new PlayerSprite().addChildTo(group4);
         for (let ii = 0; ii < 22; ii++) {
-            let xOfs = (ii < 7) ? 10 : 9;
-            let rockL = RockSprite(ii, SCREEN_CENTER_X - 128 * xOfs, 128 * ii).addChildTo(group3);
+            let rockL = RockSprite(ii, SCREEN_CENTER_X - 128 * 9, 128 * ii).addChildTo(group3);
             rockLeftArray.push(rockL);
-            let rockR = RockSprite(ii, SCREEN_CENTER_X + 128 * xOfs, 128 * ii).addChildTo(group3);
+            let rockR = RockSprite(ii, SCREEN_CENTER_X + 128 * 9, 128 * ii).addChildTo(group3);
             rockRightArray.push(rockR);
         }
 
@@ -622,6 +621,7 @@ tm.define("PlayerSprite", {
         } else {
             if (this.status === PL_STATUS.READY) {
                 this.yPos += 16;
+                this.depth += 16;
                 if (this.yPos >= SCREEN_CENTER_Y - 336) {
                     this.status = PL_STATUS.START;
                 }
