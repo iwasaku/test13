@@ -299,7 +299,6 @@ tm.define("GameScene", {
         fgSprite[2].setPosition(SCREEN_CENTER_X + SCREEN_HEIGHT, SCREEN_CENTER_Y);
         fgSprite[2].setAlpha(0.0);
 
-
         clearArrays();
         player = new PlayerSprite().addChildTo(group4);
         for (let ii = 0; ii < 22; ii++) {
@@ -414,8 +413,8 @@ tm.define("GameScene", {
             this.tweetButton.onclick = function () {
                 var twitterURL = tm.social.Twitter.createURL({
                     type: "tweet",
-                    text: "水深" + (player.depth / 100.0).toFixed(2) + "m に到達（スコア：" + player.score + "）",
-                    hashtags: ["TPTM", "ネムレス", "NEMLESSS"],
+                    text: "TPTM 水深" + (player.depth / 100.0).toFixed(2) + "m に到達（スコア：" + player.score + "）",
+                    hashtags: ["ネムレス", "NEMLESSS"],
                     url: "https://iwasaku.github.io/test13/TPTM/",
                 });
                 window.open(twitterURL);
