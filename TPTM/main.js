@@ -11,7 +11,7 @@ const FPS = 60; // 60フレ
 const FONT_FAMILY = "'misaki_gothic','Meiryo',sans-serif";
 const ASSETS = {
     "nmls": "./resource/new_nmls_128.png",
-    "rock": "./resource/planet_128.png",
+    "rock": "./resource/rock_128.png",
 
     "chinu": "./resource/chinu_128.png",
     "rabuka": "./resource/rabuka_128.png",
@@ -35,6 +35,13 @@ const PL_STATUS = defineEnum({
         isDead: Boolean(0),     // 死んでない
         isAccKey: Boolean(0),   // キー入力を受け付けない
         string: 'init'
+    },
+    READY: {
+        value: 1,
+        isStarted: Boolean(0),  // スタートしてない
+        isDead: Boolean(0),     // 死んでない
+        isAccKey: Boolean(1),   // キー入力を受け付けない
+        string: 'ready'
     },
     START: {
         value: 1,
@@ -296,9 +303,10 @@ tm.define("GameScene", {
         clearArrays();
         player = new PlayerSprite().addChildTo(group4);
         for (let ii = 0; ii < 22; ii++) {
-            let rockL = RockSprite(ii, SCREEN_CENTER_X - 128 * 9, 128 * ii).addChildTo(group3);
+            let xOfs = (ii < 7) ? 10 : 9;
+            let rockL = RockSprite(ii, SCREEN_CENTER_X - 128 * xOfs, 128 * ii).addChildTo(group3);
             rockLeftArray.push(rockL);
-            let rockR = RockSprite(ii, SCREEN_CENTER_X + 128 * 9, 128 * ii).addChildTo(group3);
+            let rockR = RockSprite(ii, SCREEN_CENTER_X + 128 * xOfs, 128 * ii).addChildTo(group3);
             rockRightArray.push(rockR);
         }
 
@@ -428,7 +436,7 @@ tm.define("GameScene", {
         } else {
             if (!player.status.isStarted) {
                 this.gameOverLabel.setAlpha(0.0);
-                player.status = PL_STATUS.START;
+                player.status = PL_STATUS.READY;
             }
 
             rockScroll();
@@ -469,7 +477,7 @@ tm.define("PlayerSprite", {
         this.superInit(ss, 128, 128);
         this.direct = '';
         this.xPos = SCREEN_CENTER_X;
-        this.yPos = SCREEN_CENTER_Y - 336;    // とりあえず
+        this.yPos = 0 + 64;
         this.xAcc = 0.0;
         this.yAcc = 0.0;
         this.xSpd = -1;
@@ -494,6 +502,7 @@ tm.define("PlayerSprite", {
 
     update: function (app) {
         if (this.status.isStarted) {
+
             this.xAcc = eGamma / 90.0;
 
             let tmpBeta = eBeta;
@@ -610,6 +619,14 @@ tm.define("PlayerSprite", {
                 fgSprite[1].setAlpha(0.9);
                 fgSprite[2].setAlpha(0.9);
             }
+        } else {
+            if (this.status === PL_STATUS.READY) {
+                this.yPos += 16;
+                if (this.yPos >= SCREEN_CENTER_Y - 336) {
+                    this.status = PL_STATUS.START;
+                }
+                this.setPosition(this.xPos, this.yPos).setScale(-this.xFlag, 1);
+            }
         }
     },
 });
@@ -693,7 +710,7 @@ tm.define("RockSprite", {
         this.idx = idx;
         this.xPos = posX;
         this.yPos = posY;
-        this.setPosition(this.xPos, this.yPos).setScale(1, 1);
+        this.setPosition(this.xPos, this.yPos).setScale(1, 1.2);
         this.ySpd = 0;
         this.ySpdFlag = 1;
         this.xSize = 1280;
