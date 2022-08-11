@@ -16,6 +16,9 @@ const ASSETS = {
     "chinu": "./resource/chinu_128.png",
     "rabuka": "./resource/rabuka_128.png",
 
+    "sea_sprite": "./resource/sea.png",
+    "splash_anim": "./resource/splash.png",
+
     "bg_sprite": "./resource/bg.png",
     "fg0_sprite": "./resource/fg.png",
     "fg1_sprite": "./resource/fg_blk.png",
@@ -107,6 +110,7 @@ let group4 = null;  // fg   ライトステンシル
 let group5 = null;  // player
 let group6 = null;  // status
 let bgSprite = null;
+let seaSprite = null;
 let fgSprite = [null, null, null];
 
 const DIR_KEY_DEF = defineEnum({
@@ -138,6 +142,7 @@ const DIR_KEY_DEF = defineEnum({
 });
 
 let player = null;
+let splash = null;
 var rockLeftArray = [];
 var rockRightArray = [];
 let eAlpha = 0;
@@ -277,17 +282,20 @@ tm.define("GameScene", {
             randomSeed[0] = 3557;
             randomSeed[1] = 3557;
         }
-        group0 = tm.display.CanvasElement().addChildTo(this);   // BG0（黒色）
-        group1 = tm.display.CanvasElement().addChildTo(this);   // BG1（水色）
+        group0 = tm.display.CanvasElement().addChildTo(this);   // BG0（水色）
+        group1 = tm.display.CanvasElement().addChildTo(this);   // BG1（）
         group2 = tm.display.CanvasElement().addChildTo(this);   // 敵、アイテム
         group3 = tm.display.CanvasElement().addChildTo(this);   // 岩
         group4 = tm.display.CanvasElement().addChildTo(this);   // FG（ライトステンシル）
         group5 = tm.display.CanvasElement().addChildTo(this);   // プレイヤー
         group6 = tm.display.CanvasElement().addChildTo(this);   // ステータス
 
-        bgSprite = tm.display.Sprite("bg_sprite", SCREEN_WIDTH, SCREEN_HEIGHT).addChildTo(group1);
+        bgSprite = tm.display.Sprite("bg_sprite", SCREEN_WIDTH, SCREEN_HEIGHT).addChildTo(group0);
         bgSprite.setPosition(SCREEN_CENTER_X, SCREEN_CENTER_Y);
         bgSprite.setAlpha(1.0);
+        seaSprite = tm.display.Sprite("sea_sprite", SCREEN_WIDTH, SCREEN_HEIGHT / 2.5).addChildTo(group1);
+        seaSprite.setPosition(SCREEN_CENTER_X, SCREEN_CENTER_Y - 640 - 128);
+        seaSprite.setAlpha(1.0);
         fgSprite = [null, null, null];
         fgSprite[0] = tm.display.Sprite("fg1_sprite", SCREEN_WIDTH, SCREEN_HEIGHT).addChildTo(group4);
         fgSprite[0].setPosition(SCREEN_CENTER_X - SCREEN_HEIGHT, SCREEN_CENTER_Y);
@@ -301,10 +309,21 @@ tm.define("GameScene", {
 
         clearArrays();
         player = new PlayerSprite().addChildTo(group4);
+        splash = new SplashSprite().addChildTo(group4);
         for (let ii = 0; ii < 22; ii++) {
-            let rockL = RockSprite(ii, SCREEN_CENTER_X - 128 * 9, 128 * ii).addChildTo(group3);
+            let xOfs = 9;
+            if (ii < 8) {
+                // 0〜7
+                xOfs = 10;
+            } else if (ii < 16) {
+                // 8〜15
+                xOfs = 10 - ((ii - 8) / 8);
+            } else {
+                xOfs = 9;
+            }
+            let rockL = RockSprite(ii, SCREEN_CENTER_X - 128 * xOfs, 128 * ii).addChildTo(group3);
             rockLeftArray.push(rockL);
-            let rockR = RockSprite(ii, SCREEN_CENTER_X + 128 * 9, 128 * ii).addChildTo(group3);
+            let rockR = RockSprite(ii, SCREEN_CENTER_X + 128 * xOfs, 128 * ii).addChildTo(group3);
             rockRightArray.push(rockR);
         }
 
@@ -438,6 +457,9 @@ tm.define("GameScene", {
             }
 
             rockScroll();
+            if (seaSprite.y >= -SCREEN_HEIGHT) {
+                seaSprite.y -= player.ySpd;
+            }
         }
 
         this.nowDepthLabel.text = (player.depth / 100.0).toFixed(2) + "m";
@@ -445,6 +467,56 @@ tm.define("GameScene", {
 
         ++frame;
     }
+});
+
+/*
+ * Splash
+ */
+tm.define("SplashSprite", {
+    superClass: "tm.app.AnimationSprite",
+    init: function () {
+        let ss = tm.asset.SpriteSheet({
+            // 画像
+            image: "splash_anim",
+            // １コマのサイズ指定および全コマ数
+            frame: {
+                width: 202,
+                height: 75,
+                count: 14
+            },
+            // アニメーションの定義（開始コマ、終了コマ+1、次のアニメーション,wait）
+            animations: {
+                "wait": [13, 14, "wait", 1],
+                "splash": [0, 13, "wait", 4],
+            }
+        });
+
+        this.superInit(ss, 202, 75);
+        this.direct = '';
+        this.xPos = SCREEN_CENTER_X;
+        this.yPos = SCREEN_CENTER_Y - 310;
+        this.setPosition(this.xPos, this.yPos).setScale(4, 2);
+        this.setInteractive(false);
+        this.setBoundingType("rect");
+        this.gotoAndPlay("wait");
+
+        this.status = 0;
+    },
+
+    update: function (app) {
+        if (this.status === 0) {
+            if (player.y >= this.yPos - 26) {
+                this.gotoAndPlay("splash");
+                this.status = 1;
+            }
+        } else if (this.status === 1) {
+            if (this.y >= -SCREEN_HEIGHT) {
+                this.y -= player.ySpd;
+            } else {
+                this.status = 2;
+            }
+        }
+    },
 });
 
 /*
@@ -620,8 +692,7 @@ tm.define("PlayerSprite", {
         } else {
             if (this.status === PL_STATUS.READY) {
                 this.yPos += 16;
-                this.depth += 16;
-                if (this.yPos >= SCREEN_CENTER_Y - 336) {
+                if (this.yPos >= SCREEN_CENTER_Y - 240) {
                     this.status = PL_STATUS.START;
                 }
                 this.setPosition(this.xPos, this.yPos).setScale(-this.xFlag, 1);
