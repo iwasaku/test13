@@ -494,7 +494,7 @@ tm.define("SplashSprite", {
         this.superInit(ss, 202, 75);
         this.direct = '';
         this.xPos = SCREEN_CENTER_X;
-        this.yPos = SCREEN_CENTER_Y - 310;
+        this.yPos = SCREEN_CENTER_Y - 320;
         this.setPosition(this.xPos, this.yPos).setScale(4, 2);
         this.setInteractive(false);
         this.setBoundingType("rect");
