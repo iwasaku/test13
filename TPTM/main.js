@@ -24,10 +24,7 @@ const ASSETS = {
     "fg1_sprite": "./resource/fg_blk.png",
 };
 const fallSE = new Howl({
-    src: 'https://iwasaku.github.io/test7/NEMLESSSTER/resource/fall.mp3?20200708'
-});
-const coinSE = new Howl({
-    src: 'https://iwasaku.github.io/test7/NEMLESSSTER/resource/coin05.mp3'
+    src: 'https://iwasaku.github.io/test11/UT-404/SSS3/resource/t01/21.mp3'
 });
 
 // 定義
@@ -760,7 +757,7 @@ tm.define("FishSprite", {
         this.counter++;
         // 自機との衝突判定
         if (chkCollisionRectEne2Player(this, player)) {
-            player.status = PL_STATUS.DEAD;
+            player.status = PL_STATUS.DEAD_INIT;
         }
     },
 });
@@ -796,7 +793,7 @@ tm.define("RockSprite", {
         if (player.status.isDead) return;
         // 自機との衝突判定
         if (chkCollisionRectEne2Player(this, player)) {
-            player.status = PL_STATUS.DEAD;
+            player.status = PL_STATUS.DEAD_INIT;
 
         }
     },
