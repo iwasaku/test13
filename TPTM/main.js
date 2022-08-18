@@ -1,4 +1,4 @@
-//console.log = function () { };  // ログを出す時にはコメントアウトする
+console.log = function () { };  // ログを出す時にはコメントアウトする
 const debug_flag = false;
 
 const SCREEN_WIDTH = 1280;             // スクリーン幅
@@ -108,7 +108,7 @@ let group5 = null;  // player
 let group6 = null;  // status
 let bgSprite = null;
 let seaSprite = null;
-let fgSprite = [null, null, null];
+let fgSprite = [null, null, null, null];
 
 const DIR_KEY_DEF = defineEnum({
     NONE: {
@@ -293,16 +293,19 @@ tm.define("GameScene", {
         seaSprite = tm.display.Sprite("sea_sprite", SCREEN_WIDTH, SCREEN_HEIGHT / 2.5).addChildTo(group1);
         seaSprite.setPosition(SCREEN_CENTER_X, SCREEN_CENTER_Y - 640 - 128);
         seaSprite.setAlpha(1.0);
-        fgSprite = [null, null, null];
+        fgSprite = [null, null, null, null];
         fgSprite[0] = tm.display.Sprite("fg1_sprite", SCREEN_WIDTH, SCREEN_HEIGHT).addChildTo(group4);
         fgSprite[0].setPosition(SCREEN_CENTER_X - SCREEN_HEIGHT, SCREEN_CENTER_Y);
         fgSprite[0].setAlpha(0.0);
         fgSprite[1] = tm.display.Sprite("fg0_sprite", SCREEN_WIDTH, SCREEN_HEIGHT).addChildTo(group4);
-        fgSprite[1].setPosition(SCREEN_CENTER_X, SCREEN_CENTER_Y);
+        fgSprite[1].setPosition(SCREEN_CENTER_X, SCREEN_CENTER_Y + 64);
         fgSprite[1].setAlpha(0.0);
         fgSprite[2] = tm.display.Sprite("fg1_sprite", SCREEN_WIDTH, SCREEN_HEIGHT).addChildTo(group4);
         fgSprite[2].setPosition(SCREEN_CENTER_X + SCREEN_HEIGHT, SCREEN_CENTER_Y);
         fgSprite[2].setAlpha(0.0);
+        fgSprite[3] = tm.display.Sprite("fg1_sprite", SCREEN_WIDTH, SCREEN_HEIGHT).addChildTo(group4);
+        fgSprite[3].setPosition(SCREEN_CENTER_X, -SCREEN_CENTER_Y + 64);
+        fgSprite[3].setAlpha(0.0);
 
         clearArrays();
         player = new PlayerSprite().addChildTo(group4);
@@ -608,22 +611,26 @@ tm.define("PlayerSprite", {
                 this.ySpdCounter = 0;
                 this.ySpdTotal = 0;
             }
-            if (this.depth >= this.fishDepth + 2000) {
+            if (this.depth >= this.fishDepth + 1000) {
                 // 20mごとに魚が発生
-                if (this.depth < 10000) {
-                    // 100mまでは何も出現しない
+                if (this.depth < 1500) {
+                    // 15mまでは何も出現しない
+                } else if (this.depth < 10000) {
+                    // 1/5の確率でCHINUが出現
+                    if (myRandom(1, 1, 5) === 1) {
+                        new FishSprite(FISH_DEF.CHINU).addChildTo(group2);
+                    }
                 } else if (this.depth < 50000) {
-                    // 1/8の確率でCHINUが出現
-                    // 7/8の確率で出現しない
-                    if (myRandom(1, 1, 8) === 1) {
+                    // 1/4の確率でCHINUが出現
+                    if (myRandom(1, 1, 4) === 1) {
                         new FishSprite(FISH_DEF.CHINU).addChildTo(group2);
                     }
                 } else if (this.depth < 80000) {
-                    // 1/4の確率で魚が出現
-                    if (myRandom(1, 1, 4) === 1) {
-                        // 1/8の確率でRABUKAが出現
-                        // 7/8の確率でCHINUが出現
-                        if (myRandom(1, 1, 8) === 1) {
+                    // 1/3の確率で魚が出現
+                    if (myRandom(1, 1, 3) === 1) {
+                        // 1/4の確率でRABUKAが出現
+                        // 3/4の確率でCHINUが出現
+                        if (myRandom(1, 1, 4) === 1) {
                             new FishSprite(FISH_DEF.RABUKA).addChildTo(group2);
                         } else {
                             new FishSprite(FISH_DEF.CHINU).addChildTo(group2);
@@ -631,7 +638,6 @@ tm.define("PlayerSprite", {
                     }
                 } else {
                     // 1/2の確率でRABUKAが出現
-                    // 1/2の確率で何も出現しない
                     if (myRandom(1, 1, 2) === 1) {
                         new FishSprite(FISH_DEF.RABUKA).addChildTo(group2);
                     }
@@ -665,26 +671,24 @@ tm.define("PlayerSprite", {
 
             // playerの情報と１フレずれると見た目もずれてしまうのでココに処理を書く
             fgSprite[0].setPosition(player.x - SCREEN_WIDTH, SCREEN_CENTER_Y);
-            fgSprite[1].setPosition(player.x, SCREEN_CENTER_Y);
+            fgSprite[1].setPosition(player.x, SCREEN_CENTER_Y + 128);
             fgSprite[2].setPosition(player.x + SCREEN_WIDTH, SCREEN_CENTER_Y);
+            fgSprite[3].setPosition(player.x, -SCREEN_CENTER_Y + 128);
             if (player.depth < 100000) {
                 bgSprite.setAlpha(1.0 - (player.depth / 100000.0));
             } else if (player.depth < 200000) {
                 bgSprite.setAlpha(0.0);
             }
+            let tmpAlpha = 0.0;
             if (player.depth < 80000) {
-                fgSprite[0].setAlpha(0.0);
-                fgSprite[1].setAlpha(0.0);
-                fgSprite[2].setAlpha(0.0);
+                tmpAlpha = 0.0;
             } else if (player.depth < 180000) {
-                let tmpAlpha = ((player.depth - 80000) * 0.9) / 100000.0;
-                fgSprite[0].setAlpha(tmpAlpha);
-                fgSprite[1].setAlpha(tmpAlpha);
-                fgSprite[2].setAlpha(tmpAlpha);
+                tmpAlpha = ((player.depth - 80000) * 0.9) / 100000.0;
             } else {
-                fgSprite[0].setAlpha(0.9);
-                fgSprite[1].setAlpha(0.9);
-                fgSprite[2].setAlpha(0.9);
+                tmpAlpha = 0.9;
+            }
+            for (let ii = 0; ii < fgSprite.length; ii++) {
+                fgSprite[ii].setAlpha(tmpAlpha);
             }
         } else {
             if (this.status === PL_STATUS.READY) {

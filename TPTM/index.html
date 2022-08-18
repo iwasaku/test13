@@ -78,7 +78,7 @@
 </head>
 
 <body>
-    <p class="align-center">
+    <p class="align-center" id="gyro">
         <br>
         <br>
         ジャイロセンサー<br>の<br>初期化<br>
@@ -137,9 +137,11 @@
                 // フラグを落とす
                 localStorage.setItem("tptm.doeConfirmFlag", "0");
                 // main.jsを読み込む
-                var el = document.createElement("script");
+                let el = document.createElement("script");
                 el.src = "main.js?202206230107";
                 document.getElementsByTagName('head')[0].appendChild(el);
+                // メッセージの削除
+                document.getElementById('gyro').textContent = '';
                 // 確認ボタン非表示
                 document.getElementById('confirm_btn').hidden = true;
             }
