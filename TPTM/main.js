@@ -220,11 +220,11 @@ tm.define("TitleScene", {
                 {
                     type: "Label", name: "titleLabel",
                     x: SCREEN_CENTER_X,
-                    y: SCREEN_CENTER_Y,
+                    y: SCREEN_CENTER_Y - 128,
                     fillStyle: "#fff",
                     fontSize: 160,
                     fontFamily: FONT_FAMILY,
-                    text: "TPTM",
+                    text: "TPTM\n1.1",
                     align: "center",
                 },
                 {
@@ -432,7 +432,7 @@ tm.define("GameScene", {
             this.tweetButton.onclick = function () {
                 var twitterURL = tm.social.Twitter.createURL({
                     type: "tweet",
-                    text: "TPTM 水深" + (player.depth / 100.0).toFixed(2) + "m に到達（スコア：" + player.score + "）",
+                    text: "TPTM 1.1 水深" + (player.depth / 100.0).toFixed(2) + "m に到達（スコア：" + player.score + "）",
                     hashtags: ["ネムレス", "NEMLESSS"],
                     url: "https://iwasaku.github.io/test13/TPTM/",
                 });
@@ -841,78 +841,139 @@ function rockScroll() {
         let tmpMin = 90;
         let tmpMax = 100;
         if (player.depth < 10000) {
+            // 0〜100
             tmpMin = 80;
             tmpMax = 100;
         } else if (player.depth < 20000) {
+            // 100〜200
             tmpMin = 90;
             tmpMax = 100;
         } else if (player.depth < 30000) {
+            // 200〜300
             tmpMin = 80;
             tmpMax = 100;
         } else if (player.depth < 40000) {
+            // 300〜400
             tmpMin = 70;
             tmpMax = 100;
         } else if (player.depth < 50000) {
+            // 400〜500
             tmpMin = 80;
             tmpMax = 100;
         } else if (player.depth < 60000) {
+            // 500〜600
             tmpMin = 90;
             tmpMax = 100;
         } else if (player.depth < 70000) {
+            // 600〜700
             tmpMin = 80;
             tmpMax = 100;
         } else if (player.depth < 80000) {
+            // 700〜800
             tmpMin = 70;
             tmpMax = 100;
         } else if (player.depth < 90000) {
+            // 800〜900
             tmpMin = 60;
             tmpMax = 100;
         } else if (player.depth < 100000) {
+            // 900〜1000
             tmpMin = 70;
             tmpMax = 100;
         } else if (player.depth < 110000) {
+            // 1000〜1100
             tmpMin = 60;
             tmpMax = 100;
         } else if (player.depth < 120000) {
+            // 1100〜1200
             tmpMin = 80;
             tmpMax = 100;
         } else if (player.depth < 130000) {
+            // 1200〜1300
             tmpMin = 60;
             tmpMax = 100;
         } else if (player.depth < 140000) {
+            // 1300〜1400
             tmpMin = 80;
             tmpMax = 90;
         } else if (player.depth < 150000) {
+            // 1400〜1500
             tmpMin = 60;
             tmpMax = 100;
+        } else if (player.depth < 152500) {
+            // 1500〜1525
+            tmpMin = 60;
+            tmpMax = 90;
         } else if (player.depth < 160000) {
+            // 1525〜1600
             tmpMin = 70;
             tmpMax = 90;
         } else if (player.depth < 170000) {
+            // 1600〜1700
             tmpMin = 60;
             tmpMax = 100;
+        } else if (player.depth < 172500) {
+            // 1700〜1725
+            tmpMin = 60;
+            tmpMax = 90;
         } else if (player.depth < 180000) {
+            // 1725〜1800
             tmpMin = 70;
             tmpMax = 90;
         } else if (player.depth < 190000) {
+            // 1800〜1900
             tmpMin = 60;
             tmpMax = 100;
+        } else if (player.depth < 195000) {
+            // 1900〜1950
+            tmpMin = 60;
+            tmpMax = 90;
         } else if (player.depth < 200000) {
+            // 1950〜2000
             tmpMin = 80;
             tmpMax = 90;
+        } else if (player.depth < 205000) {
+            // 2000〜2050
+            tmpMin = 60;
+            tmpMax = 90;
         } else if (player.depth < 210000) {
+            // 2050〜2100
             tmpMin = 60;
             tmpMax = 100;
+        } else if (player.depth < 215000) {
+            // 2100〜2150
+            tmpMin = 60;
+            tmpMax = 90;
         } else if (player.depth < 220000) {
+            // 2150〜2200
             tmpMin = 70;
             tmpMax = 90;
-        } else if (player.depth < 230000) {
-            tmpMin = 60;
-            tmpMax = 90;
-        } else if (player.depth < 240000) {
+        } else if (player.depth < 225000) {
+            // 2200〜2250
             tmpMin = 60;
             tmpMax = 80;
+        } else if (player.depth < 230000) {
+            // 2250〜2300
+            tmpMin = 60;
+            tmpMax = 90;
+        } else if (player.depth < 235000) {
+            // 2300〜2350
+            tmpMin = 60;
+            tmpMax = 70;
+        } else if (player.depth < 240000) {
+            // 2350〜2400
+            tmpMin = 60;
+            tmpMax = 80;
+        } else if (player.depth < 245000) {
+            // 2400〜2450
+            tmpMin = 60;
+            tmpMax = 70;
+        } else if (player.depth < 250000) {
+            // 2450〜2500
+            tmpMin = 80;
+            tmpMax = 100;
         } else {
+            // 2500〜
             tmpMin = 60;
             tmpMax = 70;
         }
