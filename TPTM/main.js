@@ -1,3 +1,5 @@
+phina.globalize();
+
 console.log = function () { };  // ログを出す時にはコメントアウトする
 const debug_flag = false;
 
@@ -10,22 +12,76 @@ const FPS = 60; // 60フレ
 
 const FONT_FAMILY = "'misaki_gothic','Meiryo',sans-serif";
 const ASSETS = {
-    "nmls": "./resource/new_nmls_128.png",
-    "rock": "./resource/rock_128.png",
+    image: {
+        "nmls": "./resource/new_nmls_128.png",
+        "rock": "./resource/rock_128.png",
 
-    "chinu": "./resource/chinu_128.png",
-    "rabuka": "./resource/rabuka_128.png",
+        "chinu": "./resource/chinu_128.png",
+        "rabuka": "./resource/rabuka_128.png",
 
-    "sea_sprite": "./resource/sea.png",
-    "splash_anim": "./resource/splash.png",
+        "sea_sprite": "./resource/sea.png",
+        "splash_anim": "./resource/splash.png",
 
-    "bg_sprite": "./resource/bg.png",
-    "fg0_sprite": "./resource/fg.png",
-    "fg1_sprite": "./resource/fg_blk.png",
+        "bg_sprite": "./resource/bg.png",
+        "fg0_sprite": "./resource/fg.png",
+        "fg1_sprite": "./resource/fg_blk.png",
+    },
+    spritesheet: {
+        "splash_ss":
+        {
+            // フレーム情報
+            "frame": {
+                "width": 202, // 1フレームの画像サイズ（横）
+                "height": 75, // 1フレームの画像サイズ（縦）
+                "cols": 14, // フレーム数（横）
+                "rows": 1, // フレーム数（縦）
+            },
+            // アニメーション情報
+            "animations": {
+                "wait": { // アニメーション名
+                    "frames": [13],
+                    "next": "wait",
+                    "frequency": 1,
+                },
+                "splash": { // アニメーション名
+                    "frames": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+                    "next": "wait",
+                    "frequency": 4,
+                },
+            }
+        },
+        nmls_ss: {
+            // フレーム情報
+            "frame": {
+                "width": 128, // 1フレームの画像サイズ（横）
+                "height": 128, // 1フレームの画像サイズ（縦）
+                "cols": 6, // フレーム数（横）
+                "rows": 1, // フレーム数（縦）
+            },
+            // アニメーション情報
+            "animations": {
+                "nmls": {
+                    "frames": [0],
+                    "next": "nmls",
+                    "frequency": 1,
+                },
+                "left": {
+                    "frames": [1, 2],
+                    "next": "left",
+                    "frequency": 15,
+                },
+                "right": {
+                    "frames": [3, 4],
+                    "next": "right",
+                    "frequency": 15,
+                },
+            }
+        }
+    },
+    sound: {
+        "fall_se": 'https://iwasaku.github.io/test11/UT-404/SSS3/resource/t01/21.mp3'
+    }
 };
-const fallSE = new Howl({
-    src: 'https://iwasaku.github.io/test11/UT-404/SSS3/resource/t01/21.mp3'
-});
 
 // 定義
 const PL_STATUS = defineEnum({
@@ -88,16 +144,6 @@ const FISH_DEF = defineEnum({
     },
 });
 
-//
-class CharaStatus {
-    constructor() {
-        this.lv = 1;
-        this.gavasss = 0;
-    }
-    initPlayer() {
-    }
-}
-
 // 表示プライオリティは 0：奥 → 4：手前 の順番
 let group0 = null;  // bg0  黒色
 let group1 = null;  // bg1  水色
@@ -149,105 +195,141 @@ var randomSeed = [3557, 3557];
 var randomMode = Boolean(0);
 let dbgMsg = "";
 
-tm.main(function () {
-    // アプリケーションクラスを生成
-    var app = tm.display.CanvasApp("#world");
-    app.resize(SCREEN_WIDTH, SCREEN_HEIGHT);    // サイズ(解像度)設定
-    app.fitWindow();                            // 自動フィッティング有効
-    app.background = "rgba(77, 136, 255, 1.0)"; // 背景色
-    app.fps = FPS;                              // フレーム数
-
-    var loading = tm.ui.LoadingScene({
-        assets: ASSETS,
+phina.main(function () {
+    var app = GameApp({
+        startLabel: 'logo',
         width: SCREEN_WIDTH,
         height: SCREEN_HEIGHT,
+        assets: ASSETS,
+        fps: FPS,
+        backgroundColor: 'black',
+
+        // シーンのリストを引数で渡す
+        scenes: [
+            {
+                className: 'LogoScene',
+                label: 'logo',
+                nextLabel: 'title',
+            },
+
+            {
+                className: 'TitleScene',
+                label: 'title',
+                nextLabel: 'game',
+            },
+            {
+                className: 'GameScene',
+                label: 'game',
+                nextLabel: 'game',
+            },
+        ]
     });
 
-    // 読み込み完了後に呼ばれるメソッドを登録
-    loading.onload = function () {
-        app.replaceScene(LogoScene());
-    };
+    // iOSなどでユーザー操作がないと音がならない仕様対策
+    // 起動後初めて画面をタッチした時に『無音』を鳴らす
+    app.domElement.addEventListener('touchend', function dummy() {
+        var s = phina.asset.Sound();
+        s.loadFromBuffer();
+        s.play().stop();
+        app.domElement.removeEventListener('touchend', dummy);
+    });
 
-    // ローディングシーンに入れ替える
-    app.replaceScene(loading);
+    // fps表示
+    //app.enableStats();
 
     // 実行
     app.run();
 });
 
 /*
+* ローディング画面をオーバーライド
+*/
+phina.define('LoadingScene', {
+    superClass: 'DisplayScene',
+
+    init: function (options) {
+        this.superInit(options);
+        // 背景色
+        var self = this;
+        var loader = phina.asset.AssetLoader();
+
+        // 明滅するラベル
+        let label = phina.display.Label({
+            text: "",
+            fontSize: 64,
+            fill: 'white',
+        }).addChildTo(this).setPosition(SCREEN_CENTER_X, SCREEN_CENTER_Y);
+
+        // ロードが進行したときの処理
+        loader.onprogress = function (e) {
+            // 進捗具合を％で表示する
+            label.text = "{0}%".format((e.progress * 100).toFixed(0));
+        };
+
+        // ローダーによるロード完了ハンドラ
+        loader.onload = function () {
+            // Appコアにロード完了を伝える（==次のSceneへ移行）
+            self.flare('loaded');
+        };
+
+        // ロード開始
+        loader.load(options.assets);
+    },
+});
+
+/*
  * ロゴ
  */
-tm.define("LogoScene", {
-    superClass: "tm.app.Scene",
+phina.define("LogoScene", {
+    superClass: 'DisplayScene',
 
-    init: function () {
-        this.superInit();
-        this.fromJSON({
-            children: [
-                {
-                    type: "Label", name: "logoLabel",
-                    x: SCREEN_CENTER_X,
-                    y: SCREEN_CENTER_Y,
-                    fillStyle: "#888",
-                    fontSize: 64,
-                    fontFamily: FONT_FAMILY,
-                    text: "UNOFFICIAL GAME",
-                    align: "center",
-                },
-            ]
-        });
+    init: function (option) {
+        this.superInit(option);
         this.localTimer = 0;
     },
 
     update: function (app) {
-        // 時間が来たらタイトルへ
-        //if (++this.localTimer >= 5 * app.fps)
-        this.app.replaceScene(TitleScene());
+        // フォント読み込み待ち
+        var self = this;
+        document.fonts.load('12px "misaki_gothic"').then(function () {
+            self.exit();
+        });
     }
 });
 
 /*
  * タイトル
  */
-tm.define("TitleScene", {
-    superClass: "tm.app.Scene",
+phina.define("TitleScene", {
+    superClass: 'DisplayScene',
 
-    init: function () {
-        this.superInit();
-        this.fromJSON({
-            children: [
-                {
-                    type: "Label", name: "titleLabel",
-                    x: SCREEN_CENTER_X,
-                    y: SCREEN_CENTER_Y - 128,
-                    fillStyle: "#fff",
-                    fontSize: 160,
-                    fontFamily: FONT_FAMILY,
-                    text: "TPTM\n1.1",
-                    align: "center",
-                },
-                {
-                    type: "FlatButton", name: "startButton",
-                    init: [
-                        {
-                            text: "START",
-                            fontFamily: FONT_FAMILY,
-                            fontSize: 96,
-                            width: 512,
-                            height: 160,
-                            bgColor: "hsl(240, 0%, 70%)",
-                        }
-                    ],
-                    x: SCREEN_CENTER_X,
-                    y: SCREEN_CENTER_Y + 320,
-                },
-            ]
-        });
+    init: function (option) {
+        this.superInit(option);
+
+        this.titleLabel = Label({
+            text: "TPTM\n1.1",
+            fontSize: 160,
+            fontFamily: FONT_FAMILY,
+            align: "center",
+            fill: "#fff",
+            x: SCREEN_CENTER_X,
+            y: SCREEN_CENTER_Y - 128,
+        }).addChildTo(this);
+        this.startButton = Button({
+            text: "START",
+            fontSize: 96,
+            fontFamily: FONT_FAMILY,
+            fill: "#444",
+            x: SCREEN_CENTER_X,
+            y: SCREEN_CENTER_Y + 320,
+            cornerRadius: 8,
+            width: 512,
+            height: 160,
+        }).addChildTo(this);
         this.localTimer = 0;
 
         var self = this;
-        this.startButton.onpointingstart = function () {
+        this.startButton.onpush = function () {
             window.addEventListener('deviceorientation', function (e) {
                 //                let tmp = getQuaternion(e.alpha, e.beta, e.gamma);
                 //                eAlpha = tmp[0];    // e.alpha  未使用
@@ -258,7 +340,7 @@ tm.define("TitleScene", {
                 eGamma = e.gamma;  //横加速（-90～90°）
             }, false);
             //            requestDeviceOrientationPermission();
-            self.app.replaceScene(GameScene());
+            self.exit();
         };
     },
 
@@ -270,42 +352,43 @@ tm.define("TitleScene", {
 /*
  * ゲーム
  */
-tm.define("GameScene", {
-    superClass: "tm.app.Scene",
+phina.define("GameScene", {
+    superClass: 'DisplayScene',
 
-    init: function () {
-        this.superInit();
+    init: function (option) {
+        this.superInit(option);
+
         if (!randomMode) {
             randomSeed[0] = 3557;
             randomSeed[1] = 3557;
         }
-        group0 = tm.display.CanvasElement().addChildTo(this);   // BG0（水色）
-        group1 = tm.display.CanvasElement().addChildTo(this);   // BG1（）
-        group2 = tm.display.CanvasElement().addChildTo(this);   // 敵、アイテム
-        group3 = tm.display.CanvasElement().addChildTo(this);   // 岩
-        group4 = tm.display.CanvasElement().addChildTo(this);   // FG（ライトステンシル）
-        group5 = tm.display.CanvasElement().addChildTo(this);   // プレイヤー
-        group6 = tm.display.CanvasElement().addChildTo(this);   // ステータス
+        group0 = DisplayElement().addChildTo(this);   // BG0（水色）
+        group1 = DisplayElement().addChildTo(this);   // BG1（）
+        group2 = DisplayElement().addChildTo(this);   // 敵、アイテム
+        group3 = DisplayElement().addChildTo(this);   // 岩
+        group4 = DisplayElement().addChildTo(this);   // FG（ライトステンシル）
+        group5 = DisplayElement().addChildTo(this);   // プレイヤー
+        group6 = DisplayElement().addChildTo(this);   // ステータス
 
-        bgSprite = tm.display.Sprite("bg_sprite", SCREEN_WIDTH, SCREEN_HEIGHT).addChildTo(group0);
-        bgSprite.setPosition(SCREEN_CENTER_X, SCREEN_CENTER_Y);
-        bgSprite.setAlpha(1.0);
-        seaSprite = tm.display.Sprite("sea_sprite", SCREEN_WIDTH, SCREEN_HEIGHT / 2.5).addChildTo(group1);
-        seaSprite.setPosition(SCREEN_CENTER_X, SCREEN_CENTER_Y - 640 - 128);
-        seaSprite.setAlpha(1.0);
+        bgSprite = phina.display.Sprite("bg_sprite").addChildTo(group0);
+        bgSprite.setPosition(SCREEN_CENTER_X, SCREEN_CENTER_Y).setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+        bgSprite.alpha = 1.0;
+        seaSprite = phina.display.Sprite("sea_sprite").addChildTo(group1);
+        seaSprite.setPosition(SCREEN_CENTER_X, SCREEN_CENTER_Y - 640 - 128).setSize(SCREEN_WIDTH, SCREEN_HEIGHT / 2.5);
+        seaSprite.alpha = 1.0;
         fgSprite = [null, null, null, null];
-        fgSprite[0] = tm.display.Sprite("fg1_sprite", SCREEN_WIDTH, SCREEN_HEIGHT).addChildTo(group4);
-        fgSprite[0].setPosition(SCREEN_CENTER_X - SCREEN_HEIGHT, SCREEN_CENTER_Y);
-        fgSprite[0].setAlpha(0.0);
-        fgSprite[1] = tm.display.Sprite("fg0_sprite", SCREEN_WIDTH, SCREEN_HEIGHT).addChildTo(group4);
-        fgSprite[1].setPosition(SCREEN_CENTER_X, SCREEN_CENTER_Y + 64);
-        fgSprite[1].setAlpha(0.0);
-        fgSprite[2] = tm.display.Sprite("fg1_sprite", SCREEN_WIDTH, SCREEN_HEIGHT).addChildTo(group4);
-        fgSprite[2].setPosition(SCREEN_CENTER_X + SCREEN_HEIGHT, SCREEN_CENTER_Y);
-        fgSprite[2].setAlpha(0.0);
-        fgSprite[3] = tm.display.Sprite("fg1_sprite", SCREEN_WIDTH, SCREEN_HEIGHT).addChildTo(group4);
-        fgSprite[3].setPosition(SCREEN_CENTER_X, -SCREEN_CENTER_Y + 64);
-        fgSprite[3].setAlpha(0.0);
+        fgSprite[0] = phina.display.Sprite("fg1_sprite").addChildTo(group4);
+        fgSprite[0].setPosition(SCREEN_CENTER_X - SCREEN_HEIGHT, SCREEN_CENTER_Y).setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+        fgSprite[0].alpha = 0.0;
+        fgSprite[1] = phina.display.Sprite("fg0_sprite").addChildTo(group4);
+        fgSprite[1].setPosition(SCREEN_CENTER_X, SCREEN_CENTER_Y + 64).setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+        fgSprite[1].alpha = 0.0;
+        fgSprite[2] = phina.display.Sprite("fg1_sprite").addChildTo(group4);
+        fgSprite[2].setPosition(SCREEN_CENTER_X + SCREEN_HEIGHT, SCREEN_CENTER_Y).setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+        fgSprite[2].alpha = 0.0;
+        fgSprite[3] = phina.display.Sprite("fg1_sprite").addChildTo(group4);
+        fgSprite[3].setPosition(SCREEN_CENTER_X, -SCREEN_CENTER_Y + 64).setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+        fgSprite[3].alpha = 0.0;
 
         clearArrays();
         player = new PlayerSprite().addChildTo(group4);
@@ -327,92 +410,80 @@ tm.define("GameScene", {
             rockRightArray.push(rockR);
         }
 
-        this.fromJSON({
-            children: [
-                {
-                    type: "Label", name: "nowDepthLabel",
-                    x: SCREEN_CENTER_X,
-                    y: 64,
-                    fillStyle: "#fff",
-                    shadowColor: "#000",
-                    shadowBlur: 10,
-                    fontSize: 128,
-                    fontFamily: FONT_FAMILY,
-                    text: "0m",
-                    align: "center",
-                },
-                {
-                    type: "Label", name: "nowScoreLabel",
-                    x: SCREEN_CENTER_X,
-                    y: SCREEN_HEIGHT - 64,
-                    fillStyle: "#fff",
-                    shadowColor: "#000",
-                    shadowBlur: 10,
-                    fontSize: 128,
-                    fontFamily: FONT_FAMILY,
-                    text: "0",
-                    align: "center",
-                },
-                {
-                    type: "Label", name: "gameOverLabel",
-                    x: SCREEN_CENTER_X,
-                    y: SCREEN_CENTER_Y - 512,
-                    fillStyle: "#fff",
-                    shadowColor: "#000",
-                    shadowBlur: 50,
-                    fontSize: 192,
-                    fontFamily: FONT_FAMILY,
-                    text: "GAME OVER",
-                    align: "center",
-                },
-                {
-                    type: "FlatButton", name: "tweetButton",
-                    init: [
-                        {
-                            text: "TWEET",
-                            fontFamily: FONT_FAMILY,
-                            fontSize: 96,
-                            width: 400,
-                            bgColor: "hsl(205, 81%, 63%)",
-                        }
-                    ],
-                    x: SCREEN_CENTER_X + 300,
-                    y: SCREEN_CENTER_Y + 128,
-                    alpha: 0.0,
-                },
-                {
-                    type: "FlatButton", name: "restartButton",
-                    init: [
-                        {
-                            text: "RESTART",
-                            fontFamily: FONT_FAMILY,
-                            fontSize: 96,
-                            width: 400,
-                            bgColor: "hsl(240, 0%, 70%)",
-                        }
-                    ],
-                    x: SCREEN_CENTER_X - 300,
-                    y: SCREEN_CENTER_Y + 128,
-                    alpha: 0.0,
-                },
-            ]
-        });
-
+        this.nowDepthLabel = Label({
+            text: "0m",
+            fontSize: 128,
+            fontFamily: FONT_FAMILY,
+            align: "center",
+            fill: "#fff",
+            shadow: "#000",
+            shadowBlur: 10,
+            x: SCREEN_CENTER_X,
+            y: 64,
+        }).addChildTo(group6);
+        this.nowScoreLabel = Label({
+            text: "0",
+            fontSize: 128,
+            fontFamily: FONT_FAMILY,
+            align: "center",
+            fill: "#fff",
+            shadow: "#000",
+            shadowBlur: 10,
+            x: SCREEN_CENTER_X,
+            y: SCREEN_HEIGHT - 64,
+        }).addChildTo(group6);
+        this.gameOverLabel = Label({
+            text: "GAME OVER",
+            fontSize: 192,
+            fontFamily: FONT_FAMILY,
+            align: "center",
+            fill: "#fff",
+            shadow: "#000",
+            shadowBlur: 50,
+            x: SCREEN_CENTER_X,
+            y: SCREEN_CENTER_Y - 512,
+        }).addChildTo(group6);
+        this.tweetButton = Button({
+            text: "POST",
+            fontSize: 96,
+            fontFamily: FONT_FAMILY,
+            align: "center",
+            fill: "#7575EF",  // ボタン色
+            x: SCREEN_CENTER_X - 300,
+            y: SCREEN_CENTER_Y + 128,
+            cornerRadius: 8,
+            width: 400,
+            height: 120,
+        }).addChildTo(group6);
+        this.tweetButton.alpha = 0.0;
         this.tweetButton.sleep();
+        this.restartButton = Button({
+            text: "RESTART",
+            fontSize: 96,
+            fontFamily: FONT_FAMILY,
+            align: "center",
+            fill: "#B2B2B2",
+            x: SCREEN_CENTER_X + 300,
+            y: SCREEN_CENTER_Y + 128,
+            cornerRadius: 8,
+            width: 400,
+            height: 120,
+        }).addChildTo(group6);
+        this.restartButton.alpha = 0.0;
         this.restartButton.sleep();
 
         var self = this;
-        this.restartButton.onpointingstart = function () {
+        this.restartButton.onpush = function () {
             // playerのremove
             if (player != null) {
                 player.remove();
                 player = null;
             }
-            self.app.replaceScene(GameScene());
+            self.exit();
         };
 
         this.nowDepthLabel.text = "0m";
-        this.nowScoreLabel.text = "9999";
+        this.nowScoreLabel.text = "0";
         this.buttonAlpha = 0.0;
         frame = 0;
     },
@@ -422,7 +493,7 @@ tm.define("GameScene", {
 
         if ((player.status === PL_STATUS.DEAD_INIT) || (player.status === PL_STATUS.DEAD)) {
             if (player.status === PL_STATUS.DEAD_INIT) {
-                fallSE.play();
+                SoundManager.play("fall_se");
                 player.status = PL_STATUS.DEAD;
             }
             player.ySpd = 0;
@@ -430,7 +501,7 @@ tm.define("GameScene", {
             var self = this;
             // tweet ボタン
             this.tweetButton.onclick = function () {
-                var twitterURL = tm.social.Twitter.createURL({
+                var twitterURL = phina.social.Twitter.createURL({
                     type: "tweet",
                     text: "TPTM 1.1 水深" + (player.depth / 100.0).toFixed(2) + "m に到達（スコア：" + player.score + "）",
                     hashtags: ["ネムレス", "NEMLESSS"],
@@ -443,16 +514,16 @@ tm.define("GameScene", {
             if (this.buttonAlpha > 1.0) {
                 this.buttonAlpha = 1.0;
             }
-            this.gameOverLabel.setAlpha(this.buttonAlpha);
-            this.tweetButton.setAlpha(this.buttonAlpha);
-            this.restartButton.setAlpha(this.buttonAlpha);
+            this.gameOverLabel.alpha = this.buttonAlpha;
+            this.tweetButton.alpha = this.buttonAlpha;
+            this.restartButton.alpha = this.buttonAlpha;
             if (this.buttonAlpha > 0.7) {
                 this.tweetButton.wakeUp();
                 this.restartButton.wakeUp();
             }
         } else {
             if (!player.status.isStarted) {
-                this.gameOverLabel.setAlpha(0.0);
+                this.gameOverLabel.alpha = 0.0;
                 player.status = PL_STATUS.READY;
             }
 
@@ -472,33 +543,19 @@ tm.define("GameScene", {
 /*
  * Splash
  */
-tm.define("SplashSprite", {
-    superClass: "tm.app.AnimationSprite",
-    init: function () {
-        let ss = tm.asset.SpriteSheet({
-            // 画像
-            image: "splash_anim",
-            // １コマのサイズ指定および全コマ数
-            frame: {
-                width: 202,
-                height: 75,
-                count: 14
-            },
-            // アニメーションの定義（開始コマ、終了コマ+1、次のアニメーション,wait）
-            animations: {
-                "wait": [13, 14, "wait", 1],
-                "splash": [0, 13, "wait", 4],
-            }
-        });
-
-        this.superInit(ss, 202, 75);
+phina.define("SplashSprite", {
+    superClass: 'Sprite',
+    init: function (option) {
+        this.superInit("splash_anim", 202, 75);
+        this.anim = FrameAnimation('splash_ss').attachTo(this);
+        this.anim.fit = false;
         this.direct = '';
         this.xPos = SCREEN_CENTER_X;
         this.yPos = SCREEN_CENTER_Y - 320;
         this.setPosition(this.xPos, this.yPos).setScale(4, 2);
         this.setInteractive(false);
         this.setBoundingType("rect");
-        this.gotoAndPlay("wait");
+        this.anim.gotoAndPlay("wait");
 
         this.status = 0;
     },
@@ -506,7 +563,7 @@ tm.define("SplashSprite", {
     update: function (app) {
         if (this.status === 0) {
             if (player.y >= this.yPos - 26) {
-                this.gotoAndPlay("splash");
+                this.anim.gotoAndPlay("splash");
                 this.status = 1;
             }
         } else if (this.status === 1) {
@@ -522,29 +579,12 @@ tm.define("SplashSprite", {
 /*
  * Player
  */
-tm.define("PlayerSprite", {
-    superClass: "tm.app.AnimationSprite",
-    init: function () {
-        let ss = tm.asset.SpriteSheet({
-            // 画像
-            image: "nmls",
-            // １コマのサイズ指定および全コマ数
-            frame: {
-                width: 128,
-                height: 128,
-                count: 6
-            },
-            // アニメーションの定義（開始コマ、終了コマ+1、次のアニメーション,wait）
-            animations: {
-                "nmls": [0, 1, "nmls", 1],
-                "left0": [1, 2, "left1", 15],
-                "left1": [2, 3, "left0", 15],
-                "right0": [3, 4, "right1", 15],
-                "right1": [4, 5, "right0", 15],
-            }
-        });
-
-        this.superInit(ss, 128, 128);
+phina.define("PlayerSprite", {
+    superClass: 'Sprite',
+    init: function (option) {
+        this.superInit("nmls", 128, 128);
+        this.anim = FrameAnimation('nmls_ss').attachTo(this);
+        this.anim.fit = false;
         this.direct = '';
         this.xPos = SCREEN_CENTER_X;
         this.yPos = 0 + 64;
@@ -555,7 +595,7 @@ tm.define("PlayerSprite", {
         this.setPosition(this.xPos, this.yPos).setScale(1, 1);
         this.setInteractive(false);
         this.setBoundingType("rect");
-        this.gotoAndPlay("left0");
+        this.anim.gotoAndPlay("left");
         this.aminBase = "left";
         this.aminCount = 0;
 
@@ -675,9 +715,9 @@ tm.define("PlayerSprite", {
             fgSprite[2].setPosition(player.x + SCREEN_WIDTH, SCREEN_CENTER_Y);
             fgSprite[3].setPosition(player.x, -SCREEN_CENTER_Y + 128);
             if (player.depth < 100000) {
-                bgSprite.setAlpha(1.0 - (player.depth / 100000.0));
+                bgSprite.alpha = 1.0 - (player.depth / 100000.0);
             } else if (player.depth < 200000) {
-                bgSprite.setAlpha(0.0);
+                bgSprite.alpha = 0.0;
             }
             let tmpAlpha = 0.0;
             if (player.depth < 80000) {
@@ -688,7 +728,7 @@ tm.define("PlayerSprite", {
                 tmpAlpha = 0.9;
             }
             for (let ii = 0; ii < fgSprite.length; ii++) {
-                fgSprite[ii].setAlpha(tmpAlpha);
+                fgSprite[ii].alpha = tmpAlpha;
             }
         } else {
             if (this.status === PL_STATUS.READY) {
@@ -705,8 +745,8 @@ tm.define("PlayerSprite", {
 /*
  * Fish
  */
-tm.define("FishSprite", {
-    superClass: "tm.app.Sprite",
+phina.define("FishSprite", {
+    superClass: "Sprite",
 
     init: function (fishDef) {
         this.spriteName = fishDef.spr;
@@ -715,7 +755,7 @@ tm.define("FishSprite", {
         this.xCol = fishDef.colw;
         this.yCol = fishDef.colh;
 
-        this.superInit(this.spriteName, this.xSize, this.ySize);
+        this.superInit(this.spriteName);
         this.direct = '';
         this.setInteractive(false);
         this.setBoundingType("rect");
@@ -732,7 +772,7 @@ tm.define("FishSprite", {
         } else {
             this.yOfsMax = myRandom(1, 10, fishDef.sinMax) / 10.0;
         }
-        this.setPosition(this.xPos, this.yPos).setScale(-this.xSpdFlag, 1);
+        this.setPosition(this.xPos, this.yPos).setSize(this.xSize, this.ySize).setScale(-this.xSpdFlag, 1);
         this.xSpd = fishDef.spd * (myRandom(1, 5, 20) / 10.0);
         this.counter = myRandom(1, 0, 90);
     },
@@ -769,19 +809,19 @@ tm.define("FishSprite", {
 /*
  * Rock
  */
-tm.define("RockSprite", {
-    superClass: "tm.app.Sprite",
+phina.define("RockSprite", {
+    superClass: "Sprite",
 
     init: function (idx, posX, posY) {
         this.spriteName = "rock";
-        this.superInit(this.spriteName, 1280, 128);
+        this.superInit(this.spriteName);
         this.direct = '';
         this.setInteractive(false);
         this.setBoundingType("rect");
         this.idx = idx;
         this.xPos = posX;
         this.yPos = posY;
-        this.setPosition(this.xPos, this.yPos).setScale(1, 1.2);
+        this.setPosition(this.xPos, this.yPos).setSize(1280, 128).setScale(1, 1.2);
         this.ySpd = 0;
         this.ySpdFlag = 1;
         this.xSize = 1280;
@@ -986,7 +1026,7 @@ function rockScroll() {
 
 function getEndOfLinePos() {
     var self = this;
-    let ret = tm.geom.Vector2(SCREEN_CENTER_X, Number.MIN_VALUE);
+    let ret = phina.geom.Vector2(SCREEN_CENTER_X, Number.MIN_VALUE);
     let tmpRockL = null;
     let tmpRockR = null;
     for (let ii = 0; ii < self.rockLeftArray.length; ii++) {
