@@ -195,6 +195,11 @@ var randomSeed = [3557, 3557];
 var randomMode = Boolean(0);
 let dbgMsg = "";
 
+// 共有ボタン用
+let postText = null;
+const postURL = "https://iwasaku.github.io/test13/TPTM/";
+const postTags = "#ネムレス #NEMLESSS";
+
 phina.main(function () {
     var app = GameApp({
         startLabel: 'logo',
@@ -286,14 +291,23 @@ phina.define("LogoScene", {
     init: function (option) {
         this.superInit(option);
         this.localTimer = 0;
+        this.font1 = false;
+        this.font2 = false;
     },
 
     update: function (app) {
-        // フォント読み込み待ち
+        // フォントロード完了待ち
         var self = this;
-        document.fonts.load('12px "misaki_gothic"').then(function () {
-            self.exit();
+        document.fonts.load('10pt "misaki_gothic"').then(function () {
+            self.font1 = true;
         });
+        document.fonts.load('10pt "icomoon"').then(function () {
+            self.font2 = true;
+        });
+        if (this.font1 && this.font2) {
+            self.exit();
+        }
+
     }
 });
 
@@ -443,20 +457,68 @@ phina.define("GameScene", {
             x: SCREEN_CENTER_X,
             y: SCREEN_CENTER_Y - 512,
         }).addChildTo(group6);
-        this.tweetButton = Button({
-            text: "POST",
+
+        // X
+        this.xButton = Button({
+            text: String.fromCharCode(0xe902),
             fontSize: 96,
-            fontFamily: FONT_FAMILY,
-            align: "center",
-            fill: "#7575EF",  // ボタン色
+            fontFamily: "icomoon",
+            fill: "#7575EF",
+            x: SCREEN_CENTER_X - 300 - 160,
+            y: SCREEN_CENTER_Y + 128,
+            cornerRadius: 8,
+            width: 120,
+            height: 120,
+        }).addChildTo(group6);
+        this.xButton.onclick = function () {
+            // https://developer.x.com/en/docs/twitter-for-websites/tweet-button/guides/web-intent
+            let shareURL = "https://x.com/intent/tweet?text=" + encodeURIComponent(postText + "\n" + postTags + "\n") + "&url=" + encodeURIComponent(postURL);
+            window.open(shareURL);
+        };
+        this.xButton.alpha = 0.0;
+        this.xButton.sleep();
+
+        // threads
+        this.threadsButton = Button({
+            text: String.fromCharCode(0xe901),
+            fontSize: 96,
+            fontFamily: "icomoon",
+            fill: "#7575EF",
             x: SCREEN_CENTER_X - 300,
             y: SCREEN_CENTER_Y + 128,
             cornerRadius: 8,
-            width: 400,
+            width: 120,
             height: 120,
         }).addChildTo(group6);
-        this.tweetButton.alpha = 0.0;
-        this.tweetButton.sleep();
+        this.threadsButton.onclick = function () {
+            // https://developers.facebook.com/docs/threads/threads-web-intents/
+            // web intentでのハッシュタグの扱いが環境（ブラウザ、iOS、Android）によって違いすぎるので『#』を削って通常の文字列にしておく
+            let shareURL = "https://www.threads.net/intent/post?text=" + encodeURIComponent(postText + "\n\n" + postTags.replace(/#/g, "")) + "&url=" + encodeURIComponent(postURL);
+            window.open(shareURL);
+        };
+        this.threadsButton.alpha = 0.0;
+        this.threadsButton.sleep();
+
+        // bluesky
+        this.bskyButton = Button({
+            text: String.fromCharCode(0xe900),
+            fontSize: 96,
+            fontFamily: "icomoon",
+            fill: "#7575EF",
+            x: SCREEN_CENTER_X - 300 + 160,
+            y: SCREEN_CENTER_Y + 128,
+            cornerRadius: 8,
+            width: 120,
+            height: 120,
+        }).addChildTo(group6);
+        this.bskyButton.onclick = function () {
+            // https://docs.bsky.app/docs/advanced-guides/intent-links
+            let shareURL = "https://bsky.app/intent/compose?text=" + encodeURIComponent(postText + "\n" + postTags + "\n" + postURL);
+            window.open(shareURL);
+        };
+        this.bskyButton.alpha = 0.0;
+        this.bskyButton.sleep();
+
         this.restartButton = Button({
             text: "RESTART",
             fontSize: 96,
@@ -497,28 +559,21 @@ phina.define("GameScene", {
                 player.status = PL_STATUS.DEAD;
             }
             player.ySpd = 0;
-
-            var self = this;
-            // tweet ボタン
-            this.tweetButton.onclick = function () {
-                var twitterURL = phina.social.Twitter.createURL({
-                    type: "tweet",
-                    text: "TPTM 1.1 水深" + (player.depth / 100.0).toFixed(2) + "m に到達（スコア：" + player.score + "）",
-                    hashtags: ["ネムレス", "NEMLESSS"],
-                    url: "https://iwasaku.github.io/test13/TPTM/",
-                });
-                window.open(twitterURL);
-            };
+            postText = "TPTM 1.1\n水深" + (player.depth / 100.0).toFixed(2) + "m に到達\nスコア：" + player.score;
 
             this.buttonAlpha += 0.05;
             if (this.buttonAlpha > 1.0) {
                 this.buttonAlpha = 1.0;
             }
             this.gameOverLabel.alpha = this.buttonAlpha;
-            this.tweetButton.alpha = this.buttonAlpha;
+            this.xButton.alpha = this.buttonAlpha;
+            this.threadsButton.alpha = this.buttonAlpha;
+            this.bskyButton.alpha = this.buttonAlpha;
             this.restartButton.alpha = this.buttonAlpha;
             if (this.buttonAlpha > 0.7) {
-                this.tweetButton.wakeUp();
+                this.xButton.wakeUp();
+                this.threadsButton.wakeUp();
+                this.bskyButton.wakeUp();
                 this.restartButton.wakeUp();
             }
         } else {
